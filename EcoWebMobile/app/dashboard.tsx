@@ -1,229 +1,329 @@
-// app/dashboard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Pressable, TextInput, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Colors } from '@/constants/Colors'; // Usando a paleta moderna que definimos
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  SectionList,
+  TextInput,
+  SectionListData,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '@/constants/Colors';
+import { useRouter } from 'expo-router';
 
-// --- MOCK DATA ---
-const FEED_ITEMS = [
-    // ... cole os dados do FEED_ITEMS aqui
-];
-
-const CATEGORIES = ['Madeira', 'Plástico', 'Tecido', 'Vidro', 'Metal', 'Papel'];
-
-type FeedItem = typeof FEED_ITEMS[0];
-
-export default function DashboardScreen() {
-    const router = useRouter();
-
-    const renderCard = ({ item }: { item: FeedItem }) => {
-        // Card de Projeto - Maior, com mais destaque
-        if (item.type === 'project') {
-            return (
-                <Pressable style={styles.projectCard} onPress={() => router.push(`/projeto/${item.id}`)}>
-                    <Image source={{ uri: item.image }} style={styles.cardImage} />
-                    <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.8)']}
-                        style={styles.gradient}
-                    />
-                    <View style={styles.projectCardContent}>
-                        <Text style={styles.projectCardTitle}>{item.title}</Text>
-                        <Text style={styles.projectCardAuthor}>por {item.author}</Text>
-                    </View>
-                </Pressable>
-            );
-        }
-        // Card de Material - Design único para se diferenciar
-        if (item.type === 'material') {
-            return (
-                <Pressable style={styles.materialCard}>
-                    <Image source={{ uri: item.image }} style={styles.materialImage} />
-                    <View style={styles.materialContent}>
-                        <Text style={styles.materialTitle}>{item.material}</Text>
-                        <Text style={styles.materialCompany}>{item.company}</Text>
-                        <View style={styles.chip}>
-                            <Text style={styles.chipText}>Disponível</Text>
-                        </View>
-                    </View>
-                </Pressable>
-            );
-        }
-        return null;
-    };
-
-    return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <FlatList
-                data={FEED_ITEMS}
-                renderItem={renderCard}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ paddingBottom: 100 }}
-                ListHeaderComponent={
-                    <>
-                        <View style={styles.header}>
-                            <Text style={styles.greeting}>Olá, Ruan!</Text>
-                            <Text style={styles.headerTitle}>O que vamos transformar hoje?</Text>
-                        </View>
-
-                        <View style={styles.searchContainer}>
-                            <Ionicons name="sparkles-outline" size={24} color={Colors.primary} />
-                            <TextInput
-                                placeholder="Comece com um material ou ideia..."
-                                style={styles.searchInput}
-                            />
-                        </View>
-
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScroll}>
-                            {CATEGORIES.map((cat) => (
-                                <Pressable key={cat} style={styles.categoryChip}>
-                                    <Text style={styles.categoryText}>{cat}</Text>
-                                </Pressable>
-                            ))}
-                        </ScrollView>
-                    </>
-                }
-            />
-        </SafeAreaView>
-    );
+// --- TIPOS ---
+interface ProjectType {
+  id: string;
+  titulo: string;
+  imagem: string;
+}
+interface MaterialType {
+  id: string;
+  nome: string;
+  local: string;
+  imagem: string;
+}
+interface CategoryType {
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+interface QuickLinkType {
+    title: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    route: string;
 }
 
+// --- ESTRUTURA DE DADOS ---
+const sectionsData = [
+  {
+    title: 'Para Você',
+    type: 'featured' as const,
+    data: [ [ { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg' }, { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg' }, { id: 'p3', titulo: 'Bolsa de Retalhos', imagem: 'https://i.imgur.com/Bm2cWYO.jpg' } ] ],
+  },
+  {
+      title: 'Categorias Populares',
+      type: 'categories' as const,
+      data: [ [ { name: 'Móveis', icon: 'bed-outline' }, { name: 'Decoração', icon: 'color-palette-outline' }, { name: 'Jardim', icon: 'leaf-outline' }, { name: 'Moda', icon: 'shirt-outline' } ] ],
+  },
+  {
+    title: 'Materiais Chegando Agora',
+    type: 'material_list' as const,
+    data: [
+      { id: 'm1', nome: 'Paletes de madeira', local: 'Madeireira Verde', imagem: 'https://i.imgur.com/y2v3fRU.jpg' },
+      { id: 'm2', nome: 'Garrafas de Vidro', local: 'Restaurante Sabor', imagem: 'https://i.imgur.com/gD6yYJL.jpg' },
+    ],
+  },
+  // CORREÇÃO 1: Os dados dos links rápidos devem ser agrupados em pares (arrays dentro do array)
+  {
+      title: 'Sua Jornada Criativa',
+      type: 'quick_links' as const,
+      data: [
+          [ // Primeiro par (linha 1 da grid)
+            { title: 'Nova Postagem', icon: 'add-circle-outline', route: '/criar' },
+            { title: 'Meus Projetos', icon: 'hammer-outline', route: '/meus-projetos' },
+          ],
+          [ // Segundo par (linha 2 da grid)
+            { title: 'Favoritos', icon: 'heart-outline', route: '/favoritos' },
+            { title: 'Perfil', icon: 'person-outline', route: '/perfil' },
+          ]
+      ],
+  },
+];
+
+// --- COMPONENTES ---
+const CategoryCard = ({ item }: { item: CategoryType }) => (
+    <TouchableOpacity style={styles.categoryCard}>
+        <Ionicons name={item.icon} size={28} color={Colors.primary} />
+        <Text style={styles.categoryCardText}>{item.name}</Text>
+    </TouchableOpacity>
+);
+
+const QuickLink = ({ item, router }: { item: QuickLinkType, router: any }) => (
+    <TouchableOpacity style={styles.quickLink} onPress={() => router.push(item.route)}>
+        <Ionicons name={item.icon} size={24} color={Colors.primary} />
+        <Text style={styles.quickLinkText}>{item.title}</Text>
+    </TouchableOpacity>
+);
+
+const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
+  <TouchableOpacity style={styles.featuredCard} onPress={() => router.push(`/projeto/${item.id}`)}>
+    <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} />
+    <View style={styles.featuredCardOverlay} />
+    <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
+  </TouchableOpacity>
+);
+
+const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
+  <TouchableOpacity style={styles.materialRow} onPress={() => {/* Navegar para detalhe do material */}}>
+    <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
+    <View style={styles.materialRowContent}>
+      <Text style={styles.materialRowTitle}>{item.nome}</Text>
+      <Text style={styles.materialRowSubtitle}>{item.local}</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
+  </TouchableOpacity>
+);
+
+// --- TELA PRINCIPAL ---
+export default function ExplorarScreen() {
+  const router = useRouter();
+
+  const renderItem = ({ item, section }: { item: any, section: SectionListData<any> }) => {
+    if (section.type === 'featured' || section.type === 'categories') {
+      const CardComponent = section.type === 'featured' ? FeaturedCard : CategoryCard;
+      return (
+        <FlatList
+          horizontal
+          data={item}
+          renderItem={({ item: singleItem }) => <CardComponent item={singleItem} router={router} />}
+          keyExtractor={(singleItem) => singleItem.id || singleItem.name}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
+        />
+      );
+    }
+
+    if (section.type === 'material_list') {
+      return <MaterialRow item={item} router={router} />;
+    }
+
+    // CORREÇÃO 2: Lógica para renderizar os pares de links em uma linha
+    if (section.type === 'quick_links') {
+      return (
+        <View style={styles.quickLinkRow}>
+          {item.map((link: QuickLinkType) => (
+            <View key={link.title} style={styles.quickLinkWrapper}>
+              <QuickLink item={link} router={router} />
+            </View>
+          ))}
+        </View>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar style="dark" />
+      <SectionList
+        sections={sectionsData}
+        keyExtractor={(item, index) => (item[0]?.title || item.id || index).toString()}
+        renderItem={renderItem}
+        renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.sectionTitle}>{title}</Text>
+        )}
+        stickySectionHeadersEnabled={false}
+        // CORREÇÃO 3: REMOVER AS PROPRIEDADES INVÁLIDAS DAQUI
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.greeting}>Bem-vindo,</Text>
+            <Text style={styles.username}>Ruan 👋</Text>
+            <View style={styles.searchContainer}>
+              <Ionicons name="search" size={20} color={Colors.grayText} style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar por 'paletes', 'garrafas'..."
+                placeholderTextColor={Colors.grayText}
+              />
+            </View>
+          </View>
+        }
+      />
+    </View>
+  );
+}
+
+// --- ESTILOS ATUALIZADOS ---
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        marginBottom: 20,
-    },
-    greeting: {
-        fontSize: 18,
-        color: Colors.grayText,
-    },
-    headerTitle: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: Colors.text,
-        lineHeight: 38,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderRadius: 15,
-        paddingHorizontal: 15,
-        marginHorizontal: 20,
-        borderColor: Colors.neutral,
-        borderWidth: 1,
-        height: 55,
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 16,
-        marginLeft: 10,
-        color: Colors.text,
-    },
-    categoryScroll: {
-        paddingHorizontal: 20,
-        paddingVertical: 25,
-        gap: 12,
-    },
-    categoryChip: {
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        borderColor: Colors.neutral,
-        borderWidth: 1,
-    },
-    categoryText: {
-        color: Colors.text,
-        fontWeight: '600',
-        fontSize: 15,
-    },
-    projectCard: {
-        marginHorizontal: 20,
-        marginBottom: 25,
-        borderRadius: 20,
-        backgroundColor: Colors.neutral,
-    },
-    cardImage: {
-        width: '100%',
-        aspectRatio: 16 / 10,
-        borderRadius: 20,
-    },
-    gradient: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: '70%',
-        borderRadius: 20,
-    },
-    projectCardContent: {
-        position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
-    },
-    projectCardTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: Colors.white,
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
-        textShadowOffset: {width: 1, height: 1},
-        textShadowRadius: 3,
-    },
-    projectCardAuthor: {
-        fontSize: 14,
-        color: Colors.white,
-        opacity: 0.9,
-    },
-    materialCard: {
-        flexDirection: 'row',
-        marginHorizontal: 20,
-        marginBottom: 25,
-        backgroundColor: Colors.white,
-        borderRadius: 20,
-        borderColor: Colors.neutral,
-        borderWidth: 1,
-        padding: 15,
-        alignItems: 'center',
-    },
-    materialImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 15,
-    },
-    materialContent: {
-        flex: 1,
-        marginLeft: 15,
-    },
-    materialTitle: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: Colors.text,
-    },
-    materialCompany: {
-        fontSize: 14,
-        color: Colors.grayText,
-        marginVertical: 4,
-    },
-    chip: {
-        backgroundColor: Colors.accent,
-        alignSelf: 'flex-start',
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 15,
-        marginTop: 5,
-    },
-    chipText: {
-        color: Colors.primary,
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F6F8',
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 10,
+  },
+  greeting: {
+    fontSize: 16,
+    color: Colors.grayText,
+  },
+  username: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 50,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#E8E8E8'
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.text,
+    marginHorizontal: 20,
+    marginTop: 25,
+    marginBottom: 10,
+  },
+  featuredCard: {
+    width: 280,
+    height: 180,
+    borderRadius: 20,
+    marginRight: 16,
+    backgroundColor: '#000',
+  },
+  featuredCardImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    opacity: 0.8,
+  },
+  featuredCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 20,
+  },
+  featuredCardTitle: {
+    position: 'absolute',
+    bottom: 15,
+    left: 15,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.white,
+  },
+  materialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E8E8E8'
+  },
+  materialRowImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+  },
+  materialRowContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  materialRowTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  materialRowSubtitle: {
+    fontSize: 14,
+    color: Colors.grayText,
+    marginTop: 4,
+  },
+  categoryCard: {
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      padding: 16,
+      marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 110,
+      height: 110,
+      borderWidth: 1,
+      borderColor: Colors.neutral,
+  },
+  categoryCardText: {
+      marginTop: 8,
+      color: Colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+  },
+  quickLinkRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 20,
+      marginBottom: 12,
+  },
+  quickLinkWrapper: {
+      width: '48.5%', // Ocupa quase metade, com um pequeno espaço no meio
+  },
+  quickLink: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.white,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: Colors.neutral,
+  },
+  quickLinkText: {
+      marginLeft: 12,
+      fontSize: 16,
+      fontWeight: '600',
+      color: Colors.text,
+  }
 });
+
+const CCard = ({ item }: { item: CategoryType }) => <CategoryCard item={item} />;
+const QLink = ({ item, router }: { item: QuickLinkType, router: any }) => <QuickLink item={item} router={router} />;
+const FCard = ({ item, router }: { item: ProjectType, router: any }) => <FeaturedCard item={item} router={router} />;
+const MRow = ({ item, router }: { item: MaterialType, router: any }) => <MaterialRow item={item} router={router} />;

@@ -1,6 +1,18 @@
 // app/login.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, SafeAreaView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  SafeAreaView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { StatusBar } from 'expo-status-bar';
@@ -8,53 +20,75 @@ import { StatusBar } from 'expo-status-bar';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = () => {
-    // Lógica de Mock - futuramente, conectar com a API aqui
-    if (email === '' || password === '') {
+    if (!email || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
-    console.log('Login com:', { email, password });
-    router.replace('/dashboard'); // Leva para a tela principal do app
+
+    setLoading(true);
+    setTimeout(() => {
+      console.log('Login com:', { email, password });
+      setLoading(false);
+      router.replace('/dashboard');
+    }, 1500);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <View style={styles.header}>
-        <Text style={styles.title}>Bem-vindo de volta!</Text>
-        <Text style={styles.subtitle}>Faça login para continuar</Text>
-      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.inner}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Bem-vindo de volta!</Text>
+          <Text style={styles.subtitle}>Faça login para continuar</Text>
+        </View>
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Seu e-mail"
-          placeholderTextColor={Colors.gray}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Sua senha"
-          placeholderTextColor={Colors.gray}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="Seu e-mail"
+            placeholderTextColor={Colors.grayText}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            accessibilityLabel="Campo de e-mail"
+          />
 
-        <Pressable style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </Pressable>
+          <TextInput
+            style={styles.input}
+            placeholder="Sua senha"
+            placeholderTextColor={Colors.grayText}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            accessibilityLabel="Campo de senha"
+          />
 
-        <Pressable onPress={() => router.push('/cadastro')}>
-          <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
-        </Pressable>
-      </View>
+          <TouchableOpacity
+            style={[styles.button, loading && { opacity: 0.7 }]}
+            onPress={handleLogin}
+            disabled={loading}
+            accessibilityRole="button"
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.text} />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
+          </TouchableOpacity>
+
+          <Pressable onPress={() => router.push('/cadastro')}>
+            <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -63,6 +97,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary,
+  },
+  inner: {
+    flex: 1,
     justifyContent: 'center',
   },
   header: {
@@ -76,7 +113,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.secondary,
+    color: Colors.accent,
   },
   form: {
     paddingHorizontal: 20,
@@ -91,7 +128,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   button: {
-    backgroundColor: Colors.highlight,
+    backgroundColor: Colors.accent,
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
