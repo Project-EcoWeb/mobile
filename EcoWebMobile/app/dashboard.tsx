@@ -13,9 +13,9 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router'; // useRouter já está importado
 
-// --- TIPOS ---
+// --- TIPOS (sem alteração) ---
 interface ProjectType {
   id: string;
   titulo: string;
@@ -37,41 +37,40 @@ interface QuickLinkType {
     route: string;
 }
 
-// --- ESTRUTURA DE DADOS ---
+// --- ESTRUTURA DE DADOS (sem alteração) ---
 const sectionsData = [
-  {
-    title: 'Para Você',
-    type: 'featured' as const,
-    data: [ [ { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg' }, { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg' }, { id: 'p3', titulo: 'Bolsa de Retalhos', imagem: 'https://i.imgur.com/Bm2cWYO.jpg' } ] ],
-  },
-  {
-      title: 'Categorias Populares',
-      type: 'categories' as const,
-      data: [ [ { name: 'Móveis', icon: 'bed-outline' }, { name: 'Decoração', icon: 'color-palette-outline' }, { name: 'Jardim', icon: 'leaf-outline' }, { name: 'Moda', icon: 'shirt-outline' } ] ],
-  },
-  {
-    title: 'Materiais Chegando Agora',
-    type: 'material_list' as const,
-    data: [
-      { id: 'm1', nome: 'Paletes de madeira', local: 'Madeireira Verde', imagem: 'https://i.imgur.com/y2v3fRU.jpg' },
-      { id: 'm2', nome: 'Garrafas de Vidro', local: 'Restaurante Sabor', imagem: 'https://i.imgur.com/gD6yYJL.jpg' },
-    ],
-  },
-  // CORREÇÃO 1: Os dados dos links rápidos devem ser agrupados em pares (arrays dentro do array)
-  {
-      title: 'Sua Jornada Criativa',
-      type: 'quick_links' as const,
+    {
+      title: 'Para Você',
+      type: 'featured' as const,
+      data: [ [ { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg' }, { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg' }, { id: 'p3', titulo: 'Bolsa de Retalhos', imagem: 'https://i.imgur.com/Bm2cWYO.jpg' } ] ],
+    },
+    {
+        title: 'Categorias Populares',
+        type: 'categories' as const,
+        data: [ [ { name: 'Móveis', icon: 'bed-outline' }, { name: 'Decoração', icon: 'color-palette-outline' }, { name: 'Jardim', icon: 'leaf-outline' }, { name: 'Moda', icon: 'shirt-outline' } ] ],
+    },
+    {
+      title: 'Materiais Chegando Agora',
+      type: 'material_list' as const,
       data: [
-          [ // Primeiro par (linha 1 da grid)
-            { title: 'Nova Postagem', icon: 'add-circle-outline', route: '/criar' },
-            { title: 'Meus Projetos', icon: 'hammer-outline', route: '/meus-projetos' },
-          ],
-          [ // Segundo par (linha 2 da grid)
-            { title: 'Favoritos', icon: 'heart-outline', route: '/favoritos' },
-            { title: 'Perfil', icon: 'person-outline', route: '/perfil' },
-          ]
+        { id: 'm1', nome: 'Paletes de madeira', local: 'Madeireira Verde', imagem: 'https://i.imgur.com/y2v3fRU.jpg' },
+        { id: 'm2', nome: 'Garrafas de Vidro', local: 'Restaurante Sabor', imagem: 'https://i.imgur.com/gD6yYJL.jpg' },
       ],
-  },
+    },
+    {
+        title: 'Sua Jornada Criativa',
+        type: 'quick_links' as const,
+        data: [
+            [
+              { title: 'Nova Postagem', icon: 'add-circle-outline', route: './projeto/criar' },
+              { title: 'Meus Projetos', icon: 'hammer-outline', route: '/meus-projetos' },
+            ],
+            [
+              { title: 'Favoritos', icon: 'heart-outline', route: '/favoritos' },
+              { title: 'Perfil', icon: 'person-outline', route: '/perfil' },
+            ]
+        ],
+    },
 ];
 
 // --- COMPONENTES ---
@@ -81,14 +80,12 @@ const CategoryCard = ({ item }: { item: CategoryType }) => (
         <Text style={styles.categoryCardText}>{item.name}</Text>
     </TouchableOpacity>
 );
-
 const QuickLink = ({ item, router }: { item: QuickLinkType, router: any }) => (
     <TouchableOpacity style={styles.quickLink} onPress={() => router.push(item.route)}>
         <Ionicons name={item.icon} size={24} color={Colors.primary} />
         <Text style={styles.quickLinkText}>{item.title}</Text>
     </TouchableOpacity>
 );
-
 const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
   <TouchableOpacity style={styles.featuredCard} onPress={() => router.push(`/projeto/${item.id}`)}>
     <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} />
@@ -96,7 +93,6 @@ const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
     <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
   </TouchableOpacity>
 );
-
 const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
   <TouchableOpacity style={styles.materialRow} onPress={() => {/* Navegar para detalhe do material */}}>
     <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
@@ -113,38 +109,59 @@ export default function ExplorarScreen() {
   const router = useRouter();
 
   const renderItem = ({ item, section }: { item: any, section: SectionListData<any> }) => {
+    // ... (lógica do renderItem permanece a mesma)
     if (section.type === 'featured' || section.type === 'categories') {
-      const CardComponent = section.type === 'featured' ? FeaturedCard : CategoryCard;
-      return (
-        <FlatList
-          horizontal
-          data={item}
-          renderItem={({ item: singleItem }) => <CardComponent item={singleItem} router={router} />}
-          keyExtractor={(singleItem) => singleItem.id || singleItem.name}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
-        />
-      );
-    }
+        const CardComponent = section.type === 'featured' ? FeaturedCard : CategoryCard;
+        return (
+          <FlatList
+            horizontal
+            data={item}
+            renderItem={({ item: singleItem }) => <CardComponent item={singleItem} router={router} />}
+            keyExtractor={(singleItem) => singleItem.id || singleItem.name}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
+          />
+        );
+      }
+  
+      if (section.type === 'material_list') {
+        return <MaterialRow item={item} router={router} />;
+      }
+  
+      if (section.type === 'quick_links') {
+        return (
+          <View style={styles.quickLinkRow}>
+            {item.map((link: QuickLinkType) => (
+              <View key={link.title} style={styles.quickLinkWrapper}>
+                <QuickLink item={link} router={router} />
+              </View>
+            ))}
+          </View>
+        );
+      }
+  
+      return null;
+  };
 
-    if (section.type === 'material_list') {
-      return <MaterialRow item={item} router={router} />;
-    }
+  // MUDANÇA PRINCIPAL: Lógica do cabeçalho da seção
+  const renderSectionHeader = ({ section: { title, type } }: { section: SectionListData<any> }) => {
+    // Define a rota de destino baseada no tipo da seção
+    const seeAllRoute = 
+        type === 'featured' ? './projeto/projetos' : 
+        type === 'material_list' ? '/materias' : null;
 
-    // CORREÇÃO 2: Lógica para renderizar os pares de links em uma linha
-    if (section.type === 'quick_links') {
-      return (
-        <View style={styles.quickLinkRow}>
-          {item.map((link: QuickLinkType) => (
-            <View key={link.title} style={styles.quickLinkWrapper}>
-              <QuickLink item={link} router={router} />
-            </View>
-          ))}
+    return (
+        <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            {/* Renderiza o botão "Ver todos" apenas se a rota existir */}
+            {seeAllRoute && (
+                <TouchableOpacity style={styles.seeAllButton} onPress={() => router.push(seeAllRoute)}>
+                    <Text style={styles.seeAllText}>Ver todos</Text>
+                    <Ionicons name="arrow-forward-outline" size={16} color={Colors.primary} />
+                </TouchableOpacity>
+            )}
         </View>
-      );
-    }
-
-    return null;
+    );
   };
 
   return (
@@ -154,11 +171,9 @@ export default function ExplorarScreen() {
         sections={sectionsData}
         keyExtractor={(item, index) => (item[0]?.title || item.id || index).toString()}
         renderItem={renderItem}
-        renderSectionHeader={({ section: { title } }) => (
-            <Text style={styles.sectionTitle}>{title}</Text>
-        )}
+        // A prop renderSectionHeader agora usa nossa nova função com a lógica
+        renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
-        // CORREÇÃO 3: REMOVER AS PROPRIEDADES INVÁLIDAS DAQUI
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.greeting}>Bem-vindo,</Text>
@@ -180,6 +195,7 @@ export default function ExplorarScreen() {
 
 // --- ESTILOS ATUALIZADOS ---
 const styles = StyleSheet.create({
+  // ... todos os estilos existentes
   container: {
     flex: 1,
     backgroundColor: '#F4F6F8',
@@ -214,14 +230,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.text,
+  // MUDANÇA: O sectionTitle agora faz parte de um container
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginHorizontal: 20,
     marginTop: 25,
     marginBottom: 10,
   },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  seeAllText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginRight: 4,
+  },
+  // ... resto dos estilos (featuredCard, materialRow, etc)
   featuredCard: {
     width: 280,
     height: 180,
@@ -303,7 +336,7 @@ const styles = StyleSheet.create({
       marginBottom: 12,
   },
   quickLinkWrapper: {
-      width: '48.5%', // Ocupa quase metade, com um pequeno espaço no meio
+      width: '48.5%', 
   },
   quickLink: {
       flex: 1,
@@ -322,8 +355,3 @@ const styles = StyleSheet.create({
       color: Colors.text,
   }
 });
-
-const CCard = ({ item }: { item: CategoryType }) => <CategoryCard item={item} />;
-const QLink = ({ item, router }: { item: QuickLinkType, router: any }) => <QuickLink item={item} router={router} />;
-const FCard = ({ item, router }: { item: ProjectType, router: any }) => <FeaturedCard item={item} router={router} />;
-const MRow = ({ item, router }: { item: MaterialType, router: any }) => <MaterialRow item={item} router={router} />;
