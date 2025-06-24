@@ -1,19 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router'; // useRouter já está importado
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
   FlatList,
+  Image,
   SectionList,
-  TextInput,
   SectionListData,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router'; // useRouter já está importado
+import { Colors } from '../constants/Colors';
 
 // --- TIPOS (sem alteração) ---
 interface ProjectType {

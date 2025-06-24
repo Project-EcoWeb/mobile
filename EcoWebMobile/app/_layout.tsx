@@ -1,11 +1,10 @@
 // app/_layout.tsx
-import { Stack, useRouter } from 'expo-router';
-import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors'; // Vamos criar este arquivo a seguir
+import { Stack } from 'expo-router';
+import { Pressable } from 'react-native';
+import { Colors } from '../constants/Colors'; // Vamos criar este arquivo a seguir
 
 export default function RootLayout() {
-  const router = useRouter();
 
   return (
     <Stack

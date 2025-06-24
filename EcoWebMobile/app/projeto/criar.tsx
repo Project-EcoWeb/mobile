@@ -1,21 +1,22 @@
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Image,
   Alert,
+  Image,
   KeyboardAvoidingView, // NOVO: Importado
   Platform // NOVO: Importado
+  ,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { StatusBar } from 'expo-status-bar';
-import { Colors } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../constants/Colors';
 
 const CATEGORIES = ['Móveis', 'Decoração', 'Jardim', 'Moda', 'Brinquedos'];
 
