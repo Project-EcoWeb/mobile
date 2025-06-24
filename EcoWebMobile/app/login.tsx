@@ -84,7 +84,7 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <Pressable onPress={() => router.push('/cadastro')}>
+          <Pressable onPress={() => router.push('./auth/register')}>
             <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
           </Pressable>
         </View>

@@ -39,7 +39,7 @@ const CATEGORIES: ProjectType['category'][] = ['Móveis', 'Decoração', 'Jardim
 const ProjectGridCard = ({ item }: { item: ProjectType }) => {
     const router = useRouter();
     return (
-        <TouchableOpacity style={styles.card} onPress={() => router.push(`/projeto/${item.id}`)}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push(`/project/${item.id}`)}>
             <Image source={{ uri: item.imagem }} style={styles.cardImage} />
             <View style={styles.cardContent}>
                 <Text style={styles.cardCategory}>{item.category}</Text>

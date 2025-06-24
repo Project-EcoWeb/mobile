@@ -40,7 +40,7 @@ interface QuickLinkType {
 // --- ESTRUTURA DE DADOS (sem alteração) ---
 const sectionsData = [
     {
-      title: 'Para Você',
+      title: 'Projetos',
       type: 'featured' as const,
       data: [ [ { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg' }, { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg' }, { id: 'p3', titulo: 'Bolsa de Retalhos', imagem: 'https://i.imgur.com/Bm2cWYO.jpg' } ] ],
     },
@@ -62,12 +62,12 @@ const sectionsData = [
         type: 'quick_links' as const,
         data: [
             [
-              { title: 'Nova Postagem', icon: 'add-circle-outline', route: './projeto/criar' },
-              { title: 'Meus Projetos', icon: 'hammer-outline', route: '/meus-projetos' },
+              { title: 'Nova Postagem', icon: 'add-circle-outline', route: './project/register' },
+              { title: 'Meus Projetos', icon: 'hammer-outline', route: './profile/me' },
             ],
             [
-              { title: 'Favoritos', icon: 'heart-outline', route: '/favoritos' },
-              { title: 'Perfil', icon: 'person-outline', route: '/perfil' },
+              { title: 'Favoritos', icon: 'heart-outline', route: './profile/favorites' },
+              { title: 'Perfil', icon: 'person-outline', route: '/profile' },
             ]
         ],
     },
@@ -87,14 +87,14 @@ const QuickLink = ({ item, router }: { item: QuickLinkType, router: any }) => (
     </TouchableOpacity>
 );
 const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
-  <TouchableOpacity style={styles.featuredCard} onPress={() => router.push(`/projeto/${item.id}`)}>
+  <TouchableOpacity style={styles.featuredCard} onPress={() => router.push(`/project/${item.id}`)}>
     <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} />
     <View style={styles.featuredCardOverlay} />
     <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
   </TouchableOpacity>
 );
 const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
-  <TouchableOpacity style={styles.materialRow} onPress={() => {/* Navegar para detalhe do material */}}>
+  <TouchableOpacity style={styles.materialRow} onPress={() => router.push(`./material/${item.id}`)}>
     <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
     <View style={styles.materialRowContent}>
       <Text style={styles.materialRowTitle}>{item.nome}</Text>
@@ -147,15 +147,15 @@ export default function ExplorarScreen() {
   const renderSectionHeader = ({ section: { title, type } }: { section: SectionListData<any> }) => {
     // Define a rota de destino baseada no tipo da seção
     const seeAllRoute = 
-        type === 'featured' ? './projeto/projetos' : 
-        type === 'material_list' ? '/materias' : null;
+        type === 'featured' ? './project' : 
+        type === 'material_list' ? "./material" : null;
 
     return (
         <View style={styles.sectionHeaderContainer}>
             <Text style={styles.sectionTitle}>{title}</Text>
             {/* Renderiza o botão "Ver todos" apenas se a rota existir */}
             {seeAllRoute && (
-                <TouchableOpacity style={styles.seeAllButton} onPress={() => router.push(seeAllRoute)}>
+                <TouchableOpacity style={styles.seeAllButton} onPress={() => seeAllRoute && router.push(seeAllRoute as any)}>
                     <Text style={styles.seeAllText}>Ver todos</Text>
                     <Ionicons name="arrow-forward-outline" size={16} color={Colors.primary} />
                 </TouchableOpacity>
