@@ -1,8 +1,7 @@
-// app/_layout.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import { Pressable } from 'react-native';
-import { Colors } from '../constants/Colors'; // Vamos criar este arquivo a seguir
+import { Colors } from '../constants/Colors';
 
 export default function RootLayout() {
 
@@ -10,7 +9,7 @@ export default function RootLayout() {
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.primary, // Azul Cobalto
+          backgroundColor: Colors.primary,
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -25,7 +24,7 @@ export default function RootLayout() {
         name="dashboard"
         options={{
           title: 'Projetos',
-          headerBackVisible: false, // Esconde o botão de voltar padrão
+          headerBackVisible: false, 
           headerRight: () => (
             <Pressable onPress={() => console.log('Abrir perfil')}>
               <Ionicons name="person-circle-outline" size={30} color="#fff" />
@@ -37,7 +36,7 @@ export default function RootLayout() {
         name="projeto/[id]"
         options={{
           title: 'Detalhes do Projeto',
-          presentation: 'modal', // Abre a tela de baixo para cima
+          presentation: 'modal', 
         }}
       />
     </Stack>

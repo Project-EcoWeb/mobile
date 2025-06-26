@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router'; // useRouter já está importado
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/Colors';
 
-// --- TIPOS (sem alteração) ---
 interface ProjectType {
   id: string;
   titulo: string;
@@ -37,7 +36,6 @@ interface QuickLinkType {
     route: string;
 }
 
-// --- ESTRUTURA DE DADOS (sem alteração) ---
 const sectionsData = [
     {
       title: 'Projetos',
@@ -73,7 +71,6 @@ const sectionsData = [
     },
 ];
 
-// --- COMPONENTES ---
 const CategoryCard = ({ item }: { item: CategoryType }) => (
     <TouchableOpacity style={styles.categoryCard}>
         <Ionicons name={item.icon} size={28} color={Colors.primary} />
@@ -104,12 +101,10 @@ const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
   </TouchableOpacity>
 );
 
-// --- TELA PRINCIPAL ---
 export default function ExplorarScreen() {
   const router = useRouter();
 
   const renderItem = ({ item, section }: { item: any, section: SectionListData<any> }) => {
-    // ... (lógica do renderItem permanece a mesma)
     if (section.type === 'featured' || section.type === 'categories') {
         const CardComponent = section.type === 'featured' ? FeaturedCard : CategoryCard;
         return (
@@ -143,9 +138,7 @@ export default function ExplorarScreen() {
       return null;
   };
 
-  // MUDANÇA PRINCIPAL: Lógica do cabeçalho da seção
   const renderSectionHeader = ({ section: { title, type } }: { section: SectionListData<any> }) => {
-    // Define a rota de destino baseada no tipo da seção
     const seeAllRoute = 
         type === 'featured' ? './project' : 
         type === 'material_list' ? "./material" : null;
@@ -153,7 +146,6 @@ export default function ExplorarScreen() {
     return (
         <View style={styles.sectionHeaderContainer}>
             <Text style={styles.sectionTitle}>{title}</Text>
-            {/* Renderiza o botão "Ver todos" apenas se a rota existir */}
             {seeAllRoute && (
                 <TouchableOpacity style={styles.seeAllButton} onPress={() => seeAllRoute && router.push(seeAllRoute as any)}>
                     <Text style={styles.seeAllText}>Ver todos</Text>
@@ -171,7 +163,6 @@ export default function ExplorarScreen() {
         sections={sectionsData}
         keyExtractor={(item, index) => (item[0]?.title || item.id || index).toString()}
         renderItem={renderItem}
-        // A prop renderSectionHeader agora usa nossa nova função com a lógica
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
@@ -193,9 +184,7 @@ export default function ExplorarScreen() {
   );
 }
 
-// --- ESTILOS ATUALIZADOS ---
 const styles = StyleSheet.create({
-  // ... todos os estilos existentes
   container: {
     flex: 1,
     backgroundColor: '#F4F6F8',
@@ -230,7 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
-  // MUDANÇA: O sectionTitle agora faz parte de um container
   sectionHeaderContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -254,7 +242,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginRight: 4,
   },
-  // ... resto dos estilos (featuredCard, materialRow, etc)
   featuredCard: {
     width: 280,
     height: 180,

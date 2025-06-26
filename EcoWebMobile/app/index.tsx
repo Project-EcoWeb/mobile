@@ -1,14 +1,13 @@
-// app/onboarding.tsx
-import React from 'react';
-import { View, Text, StyleSheet, Image, Dimensions, TouchableOpacity, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Dimensions, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 const slides = [
   {
     key: '1',
-    title: 'Bem-vindo ao EcoLink',
+    title: 'Bem-vindo ao EcoWeb',
     text: 'Conecte ideias criativas com materiais recicláveis.',
     image: require('../assets/images/onboarding1.jpg'),
   },

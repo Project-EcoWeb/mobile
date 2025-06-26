@@ -93,13 +93,13 @@ export default function ProfileScreen() {
                 
                 {/* Menu de Ações */}
                 <View style={styles.menuSection}>
-                    <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => router.push('/profile/update')} />
+                    <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => alert('Funçaõ Indisponivel')}/>
                 </View>
 
                 {/* Menu Condicional para Empresas */}
                 {MOCK_USER.userType === 'company' && (
                     <View style={styles.menuSection}>
-                        <ProfileRow icon="business-outline" title="Gerenciar Resíduos" onPress={() => router.push('/empresa/residuos')} />
+                        <ProfileRow icon="business-outline" title="Gerenciar Resíduos" onPress={() => router.push('/material/me')} />
                     </View>
                 )}
                 
