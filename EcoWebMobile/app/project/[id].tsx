@@ -57,6 +57,37 @@ const MOCK_PROJECTS_DATA: { [key: string]: ProjectDataType } = { // Tipagem do o
         materiais: ['Retalhos de tecido', 'Máquina de costura', 'Forro', 'Alças'],
         youtubeVideoId: 'u1S884wA_Nk'
     },
+    p4: {
+        id: 'p4', 
+        titulo: 'Luminária de Pote de Vidro', 
+        autor: 'Pedro Alves', 
+        data: '15 de Jun, 2025', // Propriedade adicionada
+        imagem: 'https://i.imgur.com/L4A2a4A.jpg',
+        descricao: '',
+        materiais: [],
+        youtubeVideoId: ''
+    },
+    p5: {
+        id: 'p5', 
+        titulo: 'Horta Vertical de PVC', 
+        autor: 'Ana Beatriz', 
+        data: '15 de Jun, 2025', // Propriedade adicionada
+        imagem: 'https://i.pinimg.com/736x/87/4b/58/874b584d43610996841221e7847c23a5.jpg',
+        descricao: '',
+        materiais: [],
+        youtubeVideoId: ''
+    },
+    p6: {
+        
+      id: 'p6', 
+      titulo: 'Estante de Caixotes', 
+      autor: 'Ricardo Lima', 
+      data: '15 de Jun, 2025', // Propriedade adicionada
+      imagem: 'https://i.imgur.com/6XyJqfH.jpg', 
+      descricao: '',
+      materiais: [],
+      youtubeVideoId: ''
+    }
 };
 
 

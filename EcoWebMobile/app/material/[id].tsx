@@ -32,6 +32,8 @@ const MOCK_MATERIALS: MaterialType[] = [
   { id: "m1", name: "Paletes de Pinho", image: "https://i.imgur.com/y2v3fRU.jpg", description: "Em bom estado, ideal para móveis e projetos DIY.", location: "Boa Vista, RR", quantity: "15 unidades", category: "Madeira", rating: 4.8, verified: true },
   { id: "m2", name: "Garrafas de Vidro Verdes", image: "https://i.imgur.com/gD6yYJL.jpg", description: "Limpos e sem rótulo, perfeitos para artesanato.", location: "Boa Vista, RR", quantity: "5 caixas", category: "Vidro", rating: 4.5, verified: true },
   { id: "m3", name: "Retalhos de Algodão Colorido", image: "https://i.imgur.com/Bm2cWYO.jpg", description: "Diversas cores e tamanhos para projetos criativos.", location: "Boa Vista, RR", quantity: "Aprox. 5kg", category: "Tecido", rating: 4.2, verified: false },
+  { id: 'm4', name: 'Sobras de Canos de PVC', image: 'https://reciclasampa.com.br/imagens/noticias/grandes/3257_destaque.jpg', description: 'Diversos diâmetros.', location: 'Boa Vista, RR', quantity: '20 peças', category: 'Plástico', rating: 3.2, verified: true},
+  { id: 'm5', name: 'Latas de Alumínio', image: 'https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2021/08/latas-de-aluminio.jpg', description: 'Amassadas para reciclagem.', location: 'Boa Vista, RR', quantity: '3 sacos grandes', category: 'Metal', rating: 5.0, verified: false },
   // ... adicione outros se necessário
 ];
 
@@ -96,7 +98,7 @@ export default function MaterialDetailScreen() {
             </View>
             <View style={styles.actionsRow}>
                 <TouchableOpacity onPress={() => setIsFavorited(!isFavorited)}>
-                    <Ionicons name={isFavorited ? "heart" : "heart-outline"} size={28} color={isFavorited ? '#E91E63' : Colors.primary} />
+                    <Ionicons name={isFavorited ? "heart" : "heart-outline"} size={28} color={isFavorited ? '#0D4D44' : Colors.primary} />
                 </TouchableOpacity>
                  <TouchableOpacity onPress={onShare}>
                     <Ionicons name="share-social-outline" size={28} color={Colors.primary} />
