@@ -61,7 +61,7 @@ const sectionsData = [
         data: [
             [
               { title: 'Nova Postagem', icon: 'add-circle-outline', route: './project/register' },
-              { title: 'Meus Projetos', icon: 'hammer-outline', route: './profile/me' },
+              { title: 'Meus Projetos', icon: 'hammer-outline', route: './project/me' },
             ],
             [
               { title: 'Favoritos', icon: 'heart-outline', route: './profile/favorites' },
