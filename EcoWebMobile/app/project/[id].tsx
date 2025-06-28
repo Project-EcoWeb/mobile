@@ -164,7 +164,7 @@ export default function ProjectDetailScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.ctaButton}>
+      <TouchableOpacity style={styles.ctaButton} onPress={() => router.push(`../chat/${'msg1'}`)}>
           <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.white} />
           <Text style={styles.ctaButtonText}>Enviar mensagem ao criador</Text>
       </TouchableOpacity>

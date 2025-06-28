@@ -125,7 +125,7 @@ export default function MaterialDetailScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.ctaButton} onPress={() => Alert.alert('Interesse Registrado!', 'A funcionalidade de chat será implementada em breve.')}>
+      <TouchableOpacity style={styles.ctaButton} onPress={() => router.push(`../chat/${'msg1'}`)}>
           <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.white} />
           <Text style={styles.ctaButtonText}>Tenho Interesse</Text>
       </TouchableOpacity>

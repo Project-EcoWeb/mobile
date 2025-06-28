@@ -13,8 +13,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+// Certifique-se que o caminho para seu arquivo de Cores está correto
 import { Colors } from '../constants/Colors';
 
+// --- TIPOS ---
 interface ProjectType {
   id: string;
   titulo: string;
@@ -36,6 +38,7 @@ interface QuickLinkType {
     route: string;
 }
 
+// --- ESTRUTURA DE DADOS ---
 const sectionsData = [
     {
       title: 'Projetos',
@@ -60,17 +63,18 @@ const sectionsData = [
         type: 'quick_links' as const,
         data: [
             [
-              { title: 'Nova Postagem', icon: 'add-circle-outline', route: './project/register' },
-              { title: 'Meus Projetos', icon: 'hammer-outline', route: './project/me' },
+              { title: 'Nova Postagem', icon: 'add-circle-outline', route: '/project/register' }, // Atualizei as rotas para o padrão
+              { title: 'Meus Projetos', icon: 'hammer-outline', route: '/project/me' },
             ],
             [
-              { title: 'Favoritos', icon: 'heart-outline', route: './profile/favorites' },
+              { title: 'Favoritos', icon: 'heart-outline', route: '/profile/favorites' },
               { title: 'Perfil', icon: 'person-outline', route: '/profile' },
             ]
         ],
     },
 ];
 
+// --- COMPONENTES ---
 const CategoryCard = ({ item }: { item: CategoryType }) => (
     <TouchableOpacity style={styles.categoryCard}>
         <Ionicons name={item.icon} size={28} color={Colors.primary} />
@@ -78,7 +82,7 @@ const CategoryCard = ({ item }: { item: CategoryType }) => (
     </TouchableOpacity>
 );
 const QuickLink = ({ item, router }: { item: QuickLinkType, router: any }) => (
-    <TouchableOpacity style={styles.quickLink} onPress={() => router.push(item.route)}>
+    <TouchableOpacity style={styles.quickLink} onPress={() => router.push(item.route as any)}>
         <Ionicons name={item.icon} size={24} color={Colors.primary} />
         <Text style={styles.quickLinkText}>{item.title}</Text>
     </TouchableOpacity>
@@ -91,7 +95,7 @@ const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
   </TouchableOpacity>
 );
 const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
-  <TouchableOpacity style={styles.materialRow} onPress={() => router.push(`./material/${item.id}`)}>
+  <TouchableOpacity style={styles.materialRow} onPress={() => router.push(`/material/${item.id}`)}>
     <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
     <View style={styles.materialRowContent}>
       <Text style={styles.materialRowTitle}>{item.nome}</Text>
@@ -101,6 +105,7 @@ const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
   </TouchableOpacity>
 );
 
+// --- TELA PRINCIPAL ---
 export default function ExplorarScreen() {
   const router = useRouter();
 
@@ -118,11 +123,9 @@ export default function ExplorarScreen() {
           />
         );
       }
-  
       if (section.type === 'material_list') {
         return <MaterialRow item={item} router={router} />;
       }
-  
       if (section.type === 'quick_links') {
         return (
           <View style={styles.quickLinkRow}>
@@ -134,20 +137,19 @@ export default function ExplorarScreen() {
           </View>
         );
       }
-  
       return null;
   };
 
   const renderSectionHeader = ({ section: { title, type } }: { section: SectionListData<any> }) => {
     const seeAllRoute = 
-        type === 'featured' ? './project' : 
-        type === 'material_list' ? "./material" : null;
+        type === 'featured' ? '/project' : 
+        type === 'material_list' ? '/material' : null;
 
     return (
         <View style={styles.sectionHeaderContainer}>
             <Text style={styles.sectionTitle}>{title}</Text>
             {seeAllRoute && (
-                <TouchableOpacity style={styles.seeAllButton} onPress={() => seeAllRoute && router.push(seeAllRoute as any)}>
+                <TouchableOpacity style={styles.seeAllButton} onPress={() => router.push(seeAllRoute as any)}>
                     <Text style={styles.seeAllText}>Ver todos</Text>
                     <Ionicons name="arrow-forward-outline" size={16} color={Colors.primary} />
                 </TouchableOpacity>
@@ -167,8 +169,16 @@ export default function ExplorarScreen() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text style={styles.greeting}>Bem-vindo,</Text>
-            <Text style={styles.username}>Ruan 👋</Text>
+            <View style={styles.topHeaderRow}>
+                <View>
+                    <Text style={styles.greeting}>Bem-vindo,</Text>
+                    <Text style={styles.username}>User 👋</Text>
+                </View>
+                <TouchableOpacity style={styles.messagesButton} onPress={() => router.push('/profile/messages')}>
+                    <Ionicons name="chatbubbles-outline" size={28} color={Colors.text} />
+                    <View style={styles.notificationBadge} />
+                </TouchableOpacity>
+            </View>
             <View style={styles.searchContainer}>
               <Ionicons name="search" size={20} color={Colors.grayText} style={{ marginRight: 8 }} />
               <TextInput
@@ -194,6 +204,12 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 10,
   },
+  topHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   greeting: {
     fontSize: 16,
     color: Colors.grayText,
@@ -203,6 +219,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.text,
   },
+  messagesButton: {
+    padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    backgroundColor: '#E91E63',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#F4F6F8',
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -210,7 +240,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 50,
-    marginTop: 20,
     borderWidth: 1,
     borderColor: '#E8E8E8'
   },
