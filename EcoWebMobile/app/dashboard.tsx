@@ -1,22 +1,23 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+// Código atualizado com "Sua Jornada Criativa" exibida em grid 2x2
+import React from "react";
 import {
-  FlatList,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Image,
+  FlatList,
+  TextInput,
   SectionList,
   SectionListData,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-// Certifique-se que o caminho para seu arquivo de Cores está correto
-import { Colors } from '../constants/Colors';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
-// --- TIPOS ---
+import { Colors } from "../constants/Colors";
+import { useAuth } from "../context/AuthContext";
+
 interface ProjectType {
   id: string;
   titulo: string;
@@ -30,72 +31,184 @@ interface MaterialType {
 }
 interface CategoryType {
   name: string;
+  id: string;
   icon: keyof typeof Ionicons.glyphMap;
 }
 interface QuickLinkType {
-    title: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    route: string;
+  id: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  route: string;
 }
 
-// --- ESTRUTURA DE DADOS ---
-const sectionsData = [
-    {
-      title: 'Projetos',
-      type: 'featured' as const,
-      data: [ [ { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg' }, { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg' }, { id: 'p3', titulo: 'Bolsa de Retalhos', imagem: 'https://i.imgur.com/Bm2cWYO.jpg' } ] ],
-    },
-    {
-        title: 'Categorias Populares',
-        type: 'categories' as const,
-        data: [ [ { name: 'Móveis', icon: 'bed-outline' }, { name: 'Decoração', icon: 'color-palette-outline' }, { name: 'Jardim', icon: 'leaf-outline' }, { name: 'Moda', icon: 'shirt-outline' } ] ],
-    },
-    {
-      title: 'Materiais Chegando Agora',
-      type: 'material_list' as const,
-      data: [
-        { id: 'm1', nome: 'Paletes de madeira', local: 'Madeireira Verde', imagem: 'https://i.imgur.com/y2v3fRU.jpg' },
-        { id: 'm2', nome: 'Garrafas de Vidro', local: 'Restaurante Sabor', imagem: 'https://i.imgur.com/gD6yYJL.jpg' },
-      ],
-    },
-    {
-        title: 'Sua Jornada Criativa',
-        type: 'quick_links' as const,
-        data: [
-            [
-              { title: 'Nova Postagem', icon: 'add-circle-outline', route: '/project/register' }, // Atualizei as rotas para o padrão
-              { title: 'Meus Projetos', icon: 'hammer-outline', route: '/project/me' },
-            ],
-            [
-              { title: 'Favoritos', icon: 'heart-outline', route: '/profile/favorites' },
-              { title: 'Perfil', icon: 'person-outline', route: '/profile' },
-            ]
+interface HorizontalSectionWrapper<T> {
+  id: string;
+  items: T[];
+}
+
+type SectionListItemT =
+  | HorizontalSectionWrapper<ProjectType>
+  | HorizontalSectionWrapper<CategoryType>
+  | HorizontalSectionWrapper<QuickLinkType>
+  | MaterialType;
+
+interface FeaturedSection {
+  title: string;
+  type: "featured";
+  data: HorizontalSectionWrapper<ProjectType>[];
+}
+interface CategoriesSection {
+  title: string;
+  type: "categories";
+  data: HorizontalSectionWrapper<CategoryType>[];
+}
+interface MaterialListSection {
+  title: string;
+  type: "material_list";
+  data: MaterialType[];
+}
+interface QuickLinksSection {
+  title: string;
+  type: "quick_links";
+  data: HorizontalSectionWrapper<QuickLinkType>[];
+}
+
+type AppSection =
+  | FeaturedSection
+  | CategoriesSection
+  | MaterialListSection
+  | QuickLinksSection;
+
+const sectionsData: AppSection[] = [
+  {
+    title: "Projetos",
+    type: "featured",
+    data: [
+      {
+        id: "featured-items",
+        items: [
+          {
+            id: "p1",
+            titulo: "Cadeira com Paletes",
+            imagem: "https://i.imgur.com/O7pzYcL.jpg",
+          },
+          {
+            id: "p2",
+            titulo: "Vasos com Garrafa PET",
+            imagem: "https://i.imgur.com/WXJr9rJ.jpg",
+          },
+          {
+            id: "p3",
+            titulo: "Bolsa de Retalhos",
+            imagem: "https://i.imgur.com/Bm2cWYO.jpg",
+          },
         ],
-    },
+      },
+    ],
+  },
+  {
+    title: "Categorias Populares",
+    type: "categories",
+    data: [
+      {
+        id: "categories-items",
+        items: [
+          { id: "c1", name: "Móveis", icon: "bed-outline" },
+          { id: "c2", name: "Decoração", icon: "color-palette-outline" },
+          { id: "c3", name: "Jardim", icon: "leaf-outline" },
+          { id: "c4", name: "Moda", icon: "shirt-outline" },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Materiais Chegando Agora",
+    type: "material_list",
+    data: [
+      {
+        id: "m1",
+        nome: "Paletes de madeira",
+        local: "Madeireira Verde",
+        imagem: "https://i.imgur.com/y2v3fRU.jpg",
+      },
+      {
+        id: "m2",
+        nome: "Garrafas de Vidro",
+        local: "Restaurante Sabor",
+        imagem: "https://i.imgur.com/gD6yYJL.jpg",
+      },
+    ],
+  },
+  {
+    title: "Sua Jornada Criativa",
+    type: "quick_links",
+    data: [
+      {
+        id: "quick-links-items",
+        items: [
+          {
+            id: "ql1",
+            title: "Nova Postagem",
+            icon: "add-circle-outline",
+            route: "/project/register",
+          },
+          {
+            id: "ql2",
+            title: "Meus Projetos",
+            icon: "hammer-outline",
+            route: "/project/me",
+          },
+          {
+            id: "ql3",
+            title: "Favoritos",
+            icon: "heart-outline",
+            route: "/profile/favorites",
+          },
+          {
+            id: "ql4",
+            title: "Perfil",
+            icon: "person-outline",
+            route: "/profile",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
-// --- COMPONENTES ---
 const CategoryCard = ({ item }: { item: CategoryType }) => (
-    <TouchableOpacity style={styles.categoryCard}>
-        <Ionicons name={item.icon} size={28} color={Colors.primary} />
-        <Text style={styles.categoryCardText}>{item.name}</Text>
-    </TouchableOpacity>
+  <TouchableOpacity style={styles.categoryCard}>
+    <Ionicons name={item.icon} size={28} color={Colors.primary} />
+    <Text style={styles.categoryCardText}>{item.name}</Text>
+  </TouchableOpacity>
 );
-const QuickLink = ({ item, router }: { item: QuickLinkType, router: any }) => (
-    <TouchableOpacity style={styles.quickLink} onPress={() => router.push(item.route as any)}>
-        <Ionicons name={item.icon} size={24} color={Colors.primary} />
-        <Text style={styles.quickLinkText}>{item.title}</Text>
-    </TouchableOpacity>
+
+const QuickLink = ({ item, router }: { item: QuickLinkType; router: any }) => (
+  <TouchableOpacity
+    style={styles.quickLink}
+    onPress={() => router.push(item.route)}
+  >
+    <Ionicons name={item.icon} size={24} color={Colors.primary} />
+    <Text style={styles.quickLinkText}>{item.title}</Text>
+  </TouchableOpacity>
 );
-const FeaturedCard = ({ item, router }: { item: ProjectType, router: any }) => (
-  <TouchableOpacity style={styles.featuredCard} onPress={() => router.push(`/project/${item.id}`)}>
+
+const FeaturedCard = ({ item, router }: { item: ProjectType; router: any }) => (
+  <TouchableOpacity
+    style={styles.featuredCard}
+    onPress={() => router.push(`/project/${item.id}`)}
+  >
     <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} />
     <View style={styles.featuredCardOverlay} />
     <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
   </TouchableOpacity>
 );
-const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
-  <TouchableOpacity style={styles.materialRow} onPress={() => router.push(`/material/${item.id}`)}>
+
+const MaterialRow = ({ item, router }: { item: MaterialType; router: any }) => (
+  <TouchableOpacity
+    style={styles.materialRow}
+    onPress={() => router.push(`/material/${item.id}`)}
+  >
     <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
     <View style={styles.materialRowContent}>
       <Text style={styles.materialRowTitle}>{item.nome}</Text>
@@ -105,56 +218,125 @@ const MaterialRow = ({ item, router }: { item: MaterialType, router: any }) => (
   </TouchableOpacity>
 );
 
-// --- TELA PRINCIPAL ---
 export default function ExplorarScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  const renderItem = ({ item, section }: { item: any, section: SectionListData<any> }) => {
-    if (section.type === 'featured' || section.type === 'categories') {
-        const CardComponent = section.type === 'featured' ? FeaturedCard : CategoryCard;
+  const adaptedSectionsData = React.useMemo(() => {
+    const sections = JSON.parse(JSON.stringify(sectionsData)) as AppSection[];
+    const quickLinksSection = sections.find((s) => s.type === "quick_links") as
+      | QuickLinksSection
+      | undefined;
+
+    if (quickLinksSection && user?.userType === "company") {
+      const newPostLink = quickLinksSection.data[0].items.find(
+        (l) => l.title === "Nova Postagem"
+      );
+      if (newPostLink) {
+        newPostLink.title = "Novo Material ";
+        newPostLink.icon = "cube-outline";
+        newPostLink.route = "/material/register";
+      }
+    }
+    return sections;
+  }, [user?.userType]);
+
+  const renderItem = ({
+    item,
+    section,
+  }: {
+    item: SectionListItemT;
+    section: AppSection;
+  }) => {
+    switch (section.type) {
+      case "featured": {
+        const featuredWrapper = item as HorizontalSectionWrapper<ProjectType>;
         return (
           <FlatList
             horizontal
-            data={item}
-            renderItem={({ item: singleItem }) => <CardComponent item={singleItem} router={router} />}
-            keyExtractor={(singleItem) => singleItem.id || singleItem.name}
+            data={featuredWrapper.items}
+            keyExtractor={(i) => i.id}
+            renderItem={({ item }) => (
+              <FeaturedCard item={item} router={router} />
+            )}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 10 }}
+            contentContainerStyle={styles.flatListContentContainer}
           />
         );
       }
-      if (section.type === 'material_list') {
-        return <MaterialRow item={item} router={router} />;
-      }
-      if (section.type === 'quick_links') {
+      case "categories": {
+        const categoriesWrapper =
+          item as HorizontalSectionWrapper<CategoryType>;
         return (
-          <View style={styles.quickLinkRow}>
-            {item.map((link: QuickLinkType) => (
-              <View key={link.title} style={styles.quickLinkWrapper}>
-                <QuickLink item={link} router={router} />
-              </View>
-            ))}
-          </View>
+          <FlatList
+            horizontal
+            data={categoriesWrapper.items}
+            keyExtractor={(i) => i.id}
+            renderItem={({ item }) => <CategoryCard item={item} />}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.flatListContentContainer}
+          />
         );
       }
-      return null;
+      case "material_list":
+        return <MaterialRow item={item as MaterialType} router={router} />;
+      case "quick_links": {
+        const quickLinksWrapper =
+          item as HorizontalSectionWrapper<QuickLinkType>;
+        return (
+          <FlatList
+            data={quickLinksWrapper.items}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            renderItem={({ item: link, index }) => (
+              <View
+                style={[
+                  styles.quickLinkWrapperGrid,
+                  { marginRight: index % 2 === 0 ? 12 : 0 }, // margem à direita no primeiro da linha
+                ]}
+              >
+                <QuickLink item={link} router={router} />
+              </View>
+            )}
+            columnWrapperStyle={styles.quickLinkGridRow}
+            scrollEnabled={false}
+          />
+        );
+      }
+      default:
+        return null;
+    }
   };
 
-  const renderSectionHeader = ({ section: { title, type } }: { section: SectionListData<any> }) => {
-    const seeAllRoute = 
-        type === 'featured' ? '/project' : 
-        type === 'material_list' ? '/material' : null;
+  const renderSectionHeader = ({
+    section: { title, type },
+  }: {
+    section: AppSection;
+  }) => {
+    const seeAllRoute =
+      type === "featured"
+        ? "/project"
+        : type === "material_list"
+          ? "/material"
+          : null;
 
     return (
-        <View style={styles.sectionHeaderContainer}>
-            <Text style={styles.sectionTitle}>{title}</Text>
-            {seeAllRoute && (
-                <TouchableOpacity style={styles.seeAllButton} onPress={() => router.push(seeAllRoute as any)}>
-                    <Text style={styles.seeAllText}>Ver todos</Text>
-                    <Ionicons name="arrow-forward-outline" size={16} color={Colors.primary} />
-                </TouchableOpacity>
-            )}
-        </View>
+      <View style={styles.sectionHeaderContainer}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {seeAllRoute && (
+          <TouchableOpacity
+            style={styles.seeAllButton}
+            onPress={() => router.push(seeAllRoute)}
+          >
+            <Text style={styles.seeAllText}>Ver todos</Text>
+            <Ionicons
+              name="arrow-forward-outline"
+              size={16}
+              color={Colors.primary}
+            />
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
@@ -162,25 +344,43 @@ export default function ExplorarScreen() {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <SectionList
-        sections={sectionsData}
-        keyExtractor={(item, index) => (item[0]?.title || item.id || index).toString()}
+        sections={
+          adaptedSectionsData as readonly SectionListData<
+            SectionListItemT,
+            AppSection
+          >[]
+        }
+        keyExtractor={(item, index) =>
+          "id" in item ? item.id : `section-list-item-${index}`
+        }
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.topHeaderRow}>
-                <View>
-                    <Text style={styles.greeting}>Bem-vindo,</Text>
-                    <Text style={styles.username}>User 👋</Text>
-                </View>
-                <TouchableOpacity style={styles.messagesButton} onPress={() => router.push('/profile/messages')}>
-                    <Ionicons name="chatbubbles-outline" size={28} color={Colors.text} />
-                    <View style={styles.notificationBadge} />
-                </TouchableOpacity>
+              <View>
+                <Text style={styles.greeting}>Bem-vindo,</Text>
+                <Text style={styles.username}>{user?.name || "User"} 👋</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.messagesButton}
+                onPress={() => router.push("/profile/messages")}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={28}
+                  color={Colors.text}
+                />
+              </TouchableOpacity>
             </View>
             <View style={styles.searchContainer}>
-              <Ionicons name="search" size={20} color={Colors.grayText} style={{ marginRight: 8 }} />
+              <Ionicons
+                name="search"
+                size={20}
+                color={Colors.grayText}
+                style={{ marginRight: 8 }}
+              />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Buscar por 'paletes', 'garrafas'..."
@@ -197,7 +397,7 @@ export default function ExplorarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F6F8',
+    backgroundColor: "#F4F6F8",
   },
   header: {
     paddingHorizontal: 20,
@@ -205,9 +405,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   topHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   greeting: {
@@ -216,32 +416,32 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.text,
   },
   messagesButton: {
     padding: 8,
   },
   notificationBadge: {
-    position: 'absolute',
+    position: "absolute",
     right: 8,
     top: 8,
-    backgroundColor: '#E91E63',
+    backgroundColor: "#E91E63",
     width: 10,
     height: 10,
     borderRadius: 5,
     borderWidth: 2,
-    borderColor: '#F4F6F8',
+    borderColor: "#F4F6F8",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 50,
     borderWidth: 1,
-    borderColor: '#E8E8E8'
+    borderColor: "#E8E8E8",
   },
   searchInput: {
     flex: 1,
@@ -249,64 +449,68 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   sectionHeaderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginHorizontal: 20,
     marginTop: 25,
     marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.text,
   },
   seeAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   seeAllText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.primary,
     marginRight: 4,
+  },
+  flatListContentContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   featuredCard: {
     width: 280,
     height: 180,
     borderRadius: 20,
     marginRight: 16,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   featuredCardImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 20,
     opacity: 0.8,
   },
   featuredCardOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: "rgba(0,0,0,0.2)",
     borderRadius: 20,
   },
   featuredCardTitle: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 15,
     left: 15,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.white,
   },
   materialRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.white,
     marginHorizontal: 20,
     marginBottom: 12,
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E8E8E8'
+    borderColor: "#E8E8E8",
   },
   materialRowImage: {
     width: 60,
@@ -319,7 +523,7 @@ const styles = StyleSheet.create({
   },
   materialRowTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
   },
   materialRowSubtitle: {
@@ -328,46 +532,56 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   categoryCard: {
-      backgroundColor: Colors.white,
-      borderRadius: 16,
-      padding: 16,
-      marginRight: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 110,
-      height: 110,
-      borderWidth: 1,
-      borderColor: Colors.neutral,
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 110,
+    height: 110,
+    borderWidth: 1,
+    borderColor: Colors.neutral,
   },
   categoryCardText: {
-      marginTop: 8,
-      color: Colors.text,
-      fontWeight: '600',
-      fontSize: 14,
+    marginTop: 8,
+    color: Colors.text,
+    fontWeight: "600",
+    fontSize: 14,
   },
   quickLinkRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginHorizontal: 20,
-      marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 20,
+    marginBottom: 12,
   },
   quickLinkWrapper: {
-      width: '48.5%', 
+    width: "48.5%",
   },
   quickLink: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: Colors.white,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: Colors.neutral,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.neutral,
   },
   quickLinkText: {
-      marginLeft: 12,
-      fontSize: 16,
-      fontWeight: '600',
-      color: Colors.text,
-  }
+    marginLeft: 12,
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+  },
+  quickLinkGridRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 20,
+    marginBottom: 12,
+  },
+  quickLinkWrapperGrid: {
+    width: "48.5%", // Duas colunas com espaçamento
+    marginBottom: 12,
+  },
 });

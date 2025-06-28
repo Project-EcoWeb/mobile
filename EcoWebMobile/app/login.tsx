@@ -16,15 +16,20 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { EcoWebLogo } from '../components/logo';
-
+import { EcoWebLogo } from '../components/logo'; // Certifique-se de que o caminho para 'logo' está correto
+import { useAuth } from '../context/AuthContext'; // IMPORTANTE: Caminho para o seu AuthContext
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Adicionado estado para o tipo de usuário, mesclado do primeiro snippet
+  const [userType, setUserType] = useState<'creator' | 'company'>('creator');
+
   const router = useRouter();
+  const { signIn } = useAuth(); // Pegar a função signIn do contexto
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,7 +41,6 @@ export default function LoginScreen() {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
-
     if (!validateEmail(email)) {
       Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
       return;
@@ -44,9 +48,14 @@ export default function LoginScreen() {
 
     setLoading(true);
     setTimeout(() => {
-      console.log('Login com:', { email, password });
+      const name = email.split('@')[0];
+      
+      // A ÚNICA RESPONSABILIDADE DO LOGIN AGORA É CHAMAR O SIGNIN.
+      // A navegação será tratada pelo RootLayout (AppLayout) após o estado de autenticação ser atualizado.
+      signIn(userType, name);
+      
       setLoading(false);
-      router.replace('/dashboard');
+      // REMOVIDO: router.replace('/dashboard'); Esta linha foi removida conforme sua instrução.
     }, 1500);
   };
 
@@ -54,6 +63,7 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
+      {/* Formas de fundo */}
       <View style={styles.backgroundShapes}>
         <View style={[styles.shape, styles.shape1]} />
         <View style={[styles.shape, styles.shape2]} />
@@ -65,10 +75,12 @@ export default function LoginScreen() {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
+          {/* Seção do Logo */}
           <View style={styles.logoSection}>
             <EcoWebLogo size={120} showText={true} variant="light" />
           </View>
 
+          {/* Seção de Boas-vindas */}
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Bem-vindo de volta</Text>
             <Text style={styles.welcomeSubtitle}>
@@ -76,7 +88,25 @@ export default function LoginScreen() {
             </Text>
           </View>
 
+          {/* Container do Formulário */}
           <View style={styles.formContainer}>
+            {/* Seletor de Tipo de Usuário, mesclado do primeiro snippet */}
+            <View style={styles.userTypeSelector}>
+              <TouchableOpacity 
+                style={[styles.userTypeButton, userType === 'creator' && styles.userTypeActive]}
+                onPress={() => setUserType('creator')}
+              >
+                <Text style={[styles.userTypeText, userType === 'creator' && styles.userTypeActiveText]}>Sou Criador</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.userTypeButton, userType === 'company' && styles.userTypeActive]}
+                onPress={() => setUserType('company')}
+              >
+                <Text style={[styles.userTypeText, userType === 'company' && styles.userTypeActiveText]}>Sou Empresa</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Campos de Input */}
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
                 <Ionicons name="mail" size={20} color="#FFFFFF" style={styles.inputIcon} />
@@ -114,10 +144,12 @@ export default function LoginScreen() {
               </View>
             </View>
 
+            {/* Botão de Esqueceu a Senha */}
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
+            {/* Botão de Login */}
             <TouchableOpacity
               style={styles.loginButton}
               onPress={handleLogin}
@@ -135,12 +167,14 @@ export default function LoginScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
+            {/* Divisor "ou" */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>ou</Text>
               <View style={styles.dividerLine} />
             </View>
 
+            {/* Seção de Registro */}
             <View style={styles.registerSection}>
               <Text style={styles.registerText}>Não tem uma conta?</Text>
               <Pressable onPress={() => router.push('./auth/register')}>
@@ -154,10 +188,11 @@ export default function LoginScreen() {
   );
 }
 
+// Estilos mesclados e adicionados para o seletor de tipo de usuário
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#1B5E20', // Cor de fundo principal
   },
   backgroundShapes: {
     position: 'absolute',
@@ -271,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loginButtonText: {
-    color: '#2E7D32',
+    color: '#2E7D32', // Cor do texto do botão Entrar
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -304,5 +339,32 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Estilos para o seletor de tipo de usuário
+  userTypeSelector: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Fundo translúcido para o seletor
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)', // Borda translúcida
+    marginBottom: 20,
+    overflow: 'hidden', // Garante que o borderRadius se aplique bem
+  },
+  userTypeButton: {
+    flex: 1,
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  userTypeActive: {
+    backgroundColor: '#FFFFFF', // Fundo branco quando ativo
+    borderRadius: 15, // Arredondamento para o botão ativo
+  },
+  userTypeText: {
+    color: '#FFFFFF', // Texto branco para botões inativos
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  userTypeActiveText: {
+    color: '#1B5E20', // Cor do texto quando ativo, combinando com o fundo da tela
   },
 });
