@@ -16,8 +16,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EcoWebLogo } from '../components/logo'; // Certifique-se de que o caminho para 'logo' está correto
 import { useAuth } from '../context/AuthContext'; // IMPORTANTE: Caminho para o seu AuthContext
+import api from '../src/services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -36,28 +38,38 @@ export default function LoginScreen() {
     return emailRegex.test(email);
   };
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
-    if (!validateEmail(email)) {
-      Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
-      return;
-    }
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    return;
+  }
+  if (!validateEmail(email)) {
+    Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
+    return;
+  }
 
+  try {
     setLoading(true);
-    setTimeout(() => {
-      const name = email.split('@')[0];
-      
-      // A ÚNICA RESPONSABILIDADE DO LOGIN AGORA É CHAMAR O SIGNIN.
-      // A navegação será tratada pelo RootLayout (AppLayout) após o estado de autenticação ser atualizado.
-      signIn(userType, name);
-      
-      setLoading(false);
-      // REMOVIDO: router.replace('/dashboard'); Esta linha foi removida conforme sua instrução.
-    }, 1500);
-  };
+
+    const response = await api.post('/auth/login', {
+      email,
+      password,
+    });
+
+    const { user, token } = response.data;
+
+    await AsyncStorage.setItem('@ecoweb_token', token);
+
+    signIn(userType, user.name, user.email, user.id, token);
+
+  } catch (error: any) {
+    const mensagem = error.response?.data?.message || 'Falha ao fazer login. Verifique seus dados.';
+    Alert.alert('Erro', mensagem);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

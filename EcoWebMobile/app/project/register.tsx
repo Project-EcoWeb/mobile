@@ -1,40 +1,89 @@
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useState } from "react";
 import {
   Alert,
   Image,
   KeyboardAvoidingView, // NOVO: Importado
-  Platform // NOVO: Importado
-  ,
+  Platform, // NOVO: Importado
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { Colors } from '../../constants/Colors';
+  View,
+} from "react-native";
+import { Colors } from "../../constants/Colors";
+import api from "../../src/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CATEGORIES = ['Móveis', 'Decoração', 'Jardim', 'Moda', 'Brinquedos'];
+const CATEGORIES = ["Móveis", "Decoração", "Jardim", "Moda", "Brinquedos"];
 
 export default function CreateProjectScreen() {
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
   const [materials, setMaterials] = useState<string[]>([]);
-  const [currentMaterial, setCurrentMaterial] = useState('');
-  const [steps, setSteps] = useState<string[]>(['']);
-  const [youtubeUrl, setYoutubeUrl] = useState(''); // NOVO: Estado para o vídeo
+  const [currentMaterial, setCurrentMaterial] = useState("");
+  const [steps, setSteps] = useState<string[]>([""]);
+  const [youtubeUrl, setYoutubeUrl] = useState(""); // NOVO: Estado para o vídeo
+  const [difficulty, setDifficulty] = useState<
+    "Facil" | "Medio" | "Dificil" | ""
+  >("");
+
+  const handlePublish = async () => {
+    if (!title || !imageUri || !category) {
+      Alert.alert(
+        "Atenção",
+        "Por favor, preencha todos os campos obrigatórios."
+      );
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("@ecoweb_token");
+      if (!token) {
+        Alert.alert("Erro", "Usuário não autenticado.");
+        return;
+      }
+
+      // Montar o payload da requisição
+      const payload = {
+        title,
+        image: imageUri,
+        category,
+        difficulty,
+        description,
+        materials,
+        stages: steps,
+        video: youtubeUrl,
+      };
+
+      // POST para a API (ajuste a URL base para a sua)
+      await api.post("/projects", payload);
+
+      Alert.alert("Sucesso", "Projeto cadastrado com sucesso!");
+      router.back(); // Volta para a tela anterior
+    } catch (error: any) {
+      console.error("Erro ao cadastrar projeto", error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível cadastrar o projeto. Tente novamente."
+      );
+    }
+  };
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para selecionar uma imagem.');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permissão necessária",
+        "Precisamos de acesso à sua galeria para selecionar uma imagem."
+      );
       return;
     }
 
@@ -51,18 +100,21 @@ export default function CreateProjectScreen() {
   };
 
   const handleAddMaterial = () => {
-    if (currentMaterial.trim() !== '' && !materials.includes(currentMaterial.trim())) {
+    if (
+      currentMaterial.trim() !== "" &&
+      !materials.includes(currentMaterial.trim())
+    ) {
       setMaterials([...materials, currentMaterial.trim()]);
-      setCurrentMaterial('');
+      setCurrentMaterial("");
     }
   };
-  
+
   const handleRemoveMaterial = (materialToRemove: string) => {
-      setMaterials(materials.filter(material => material !== materialToRemove));
+    setMaterials(materials.filter((material) => material !== materialToRemove));
   };
 
   const handleAddStep = () => {
-      setSteps([...steps, '']);
+    setSteps([...steps, ""]);
   };
 
   const handleStepChange = (text: string, index: number) => {
@@ -71,13 +123,13 @@ export default function CreateProjectScreen() {
     setSteps(newSteps);
   };
 
-  const canPublish = title && imageUri && category;
+  const canPublish = title && imageUri && category && difficulty;
 
   // Envolvemos o ScrollView com o KeyboardAvoidingView
   return (
-    <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"} // CORREÇÃO 2: Comportamento do teclado
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"} // CORREÇÃO 2: Comportamento do teclado
     >
       <StatusBar style="dark" />
       <View style={styles.header}>
@@ -85,23 +137,38 @@ export default function CreateProjectScreen() {
           <Ionicons name="close-outline" size={32} color={Colors.text} />
         </TouchableOpacity> */}
         <Text style={styles.headerTitle}>Novo Projeto</Text>
-        <TouchableOpacity style={[styles.publishButton, !canPublish && styles.publishButtonDisabled]} disabled={!canPublish}>
+        <TouchableOpacity
+          style={[
+            styles.publishButton,
+            !canPublish && styles.publishButtonDisabled,
+          ]}
+          disabled={!canPublish}
+          onPress={handlePublish}
+        >
           <Text style={styles.publishButtonText}>Publicar</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Upload de Imagem */}
-        <TouchableOpacity style={styles.imagePicker} onPress={handlePickImage}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.previewImage} />
-          ) : (
-            <>
-              <Ionicons name="camera-outline" size={40} color={Colors.grayText} />
-              <Text style={styles.imagePickerText}>Adicionar imagem principal</Text>
-            </>
-          )}
-        </TouchableOpacity>
+        {/* URL da Imagem */}
+        <Text style={styles.sectionTitle}>URL da Imagem</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Cole a URL da imagem principal do projeto"
+          value={imageUri ?? ""}
+          onChangeText={setImageUri}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
+        {imageUri ? (
+          <View style={styles.imagePreviewContainer}>
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+          </View>
+        ) : null}
 
         {/* Título */}
         <TextInput
@@ -114,13 +181,41 @@ export default function CreateProjectScreen() {
         {/* Categoria */}
         <Text style={styles.sectionTitle}>Categoria</Text>
         <View style={styles.categoryContainer}>
-          {CATEGORIES.map(cat => (
-            <TouchableOpacity 
+          {CATEGORIES.map((cat) => (
+            <TouchableOpacity
               key={cat}
               style={[styles.chip, category === cat && styles.chipSelected]}
               onPress={() => setCategory(cat)}
             >
-              <Text style={[styles.chipText, category === cat && styles.chipTextSelected]}>{cat}</Text>
+              <Text
+                style={[
+                  styles.chipText,
+                  category === cat && styles.chipTextSelected,
+                ]}
+              >
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Dificuldade */}
+        <Text style={styles.sectionTitle}>Nível de Dificuldade</Text>
+        <View style={styles.categoryContainer}>
+          {["Facil", "Medio", "Dificil"].map((level) => (
+            <TouchableOpacity
+              key={level}
+              style={[styles.chip, difficulty === level && styles.chipSelected]}
+              onPress={() => setDifficulty(level as any)}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  difficulty === level && styles.chipTextSelected,
+                ]}
+              >
+                {level}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -135,19 +230,26 @@ export default function CreateProjectScreen() {
             onChangeText={setCurrentMaterial}
             onSubmitEditing={handleAddMaterial}
           />
-          <TouchableOpacity style={styles.addMaterialButton} onPress={handleAddMaterial}>
+          <TouchableOpacity
+            style={styles.addMaterialButton}
+            onPress={handleAddMaterial}
+          >
             <Ionicons name="add" size={24} color={Colors.white} />
           </TouchableOpacity>
         </View>
         <View style={styles.materialsList}>
-            {materials.map((mat, index) => (
-                <View key={index} style={styles.materialTag}>
-                    <Text style={styles.materialTagText}>{mat}</Text>
-                    <TouchableOpacity onPress={() => handleRemoveMaterial(mat)}>
-                        <Ionicons name="close-circle" size={20} color={Colors.primary} />
-                    </TouchableOpacity>
-                </View>
-            ))}
+          {materials.map((mat, index) => (
+            <View key={index} style={styles.materialTag}>
+              <Text style={styles.materialTagText}>{mat}</Text>
+              <TouchableOpacity onPress={() => handleRemoveMaterial(mat)}>
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
 
         {/* Descrição */}
@@ -163,18 +265,18 @@ export default function CreateProjectScreen() {
         {/* Passo a Passo */}
         <Text style={styles.sectionTitle}>Passo a Passo</Text>
         {steps.map((step, index) => (
-            <TextInput
-                key={index}
-                style={[styles.input, styles.textArea, {marginBottom: 10}]}
-                placeholder={`Passo ${index + 1}`}
-                value={step}
-                onChangeText={(text) => handleStepChange(text, index)}
-                multiline
-            />
+          <TextInput
+            key={index}
+            style={[styles.input, styles.textArea, { marginBottom: 10 }]}
+            placeholder={`Passo ${index + 1}`}
+            value={step}
+            onChangeText={(text) => handleStepChange(text, index)}
+            multiline
+          />
         ))}
         <TouchableOpacity style={styles.addStepButton} onPress={handleAddStep}>
-            <Ionicons name="add-outline" size={20} color={Colors.primary} />
-            <Text style={styles.addStepButtonText}>Adicionar Passo</Text>
+          <Ionicons name="add-outline" size={20} color={Colors.primary} />
+          <Text style={styles.addStepButtonText}>Adicionar Passo</Text>
         </TouchableOpacity>
 
         {/* CORREÇÃO 1: Campo para o Tutorial em Vídeo */}
@@ -187,12 +289,10 @@ export default function CreateProjectScreen() {
           autoCapitalize="none"
           keyboardType="url"
         />
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
 
 // --- Estilos ---
 const styles = StyleSheet.create({
@@ -201,9 +301,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 16,
@@ -213,9 +313,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     // margin: 'auto'
   },
   publishButton: {
@@ -229,7 +329,7 @@ const styles = StyleSheet.create({
   },
   publishButtonText: {
     color: Colors.white,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scrollContainer: {
     padding: 20,
@@ -238,26 +338,36 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 15,
     backgroundColor: Colors.neutral,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
     borderWidth: 2,
     borderColor: Colors.grayText,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
   },
   previewImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 15,
+  },
+  imagePreviewContainer: {
+    width: "100%",
+    height: 150,
+    borderRadius: 12,
+    overflow: "hidden",
+    marginTop: 10,
+    marginBottom: 16, // espaço visual entre imagem e input de título
+    borderWidth: 1,
+    borderColor: Colors.neutral,
   },
   imagePickerText: {
     marginTop: 8,
     color: Colors.grayText,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.text,
     marginTop: 20,
     marginBottom: 12,
@@ -272,12 +382,12 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   textArea: {
-      minHeight: 100,
-      textAlignVertical: 'top',
+    minHeight: 100,
+    textAlignVertical: "top",
   },
   categoryContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   chip: {
@@ -294,14 +404,14 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: Colors.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   chipTextSelected: {
     color: Colors.white,
   },
   materialInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   materialInput: {
     flex: 1,
@@ -321,40 +431,40 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 12,
   },
   materialsList: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginTop: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12,
   },
   materialTag: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: Colors.accent,
-      borderRadius: 15,
-      paddingVertical: 5,
-      paddingHorizontal: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.accent,
+    borderRadius: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
   },
   materialTagText: {
-      color: Colors.primary,
-      fontWeight: 'bold',
-      marginRight: 6,
+    color: Colors.primary,
+    fontWeight: "bold",
+    marginRight: 6,
   },
   addStepButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: Colors.white,
-      padding: 15,
-      borderRadius: 12,
-      marginTop: 4, // Diminuí a margem superior
-      marginBottom: 20, // Adicionei margem inferior
-      borderWidth: 1,
-      borderColor: Colors.neutral,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.white,
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 4, // Diminuí a margem superior
+    marginBottom: 20, // Adicionei margem inferior
+    borderWidth: 1,
+    borderColor: Colors.neutral,
   },
   addStepButtonText: {
-      color: Colors.primary,
-      fontWeight: 'bold',
-      marginLeft: 8,
-      fontSize: 16
-  }
+    color: Colors.primary,
+    fontWeight: "bold",
+    marginLeft: 8,
+    fontSize: 16,
+  },
 });

@@ -14,6 +14,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 // Certifique-se que o caminho para seu arquivo de Cores está correto
 import { Colors } from "../../constants/Colors";
+import { useEffect } from "react";
+import api from "../../src/services/api"; // ajuste o caminho se necessário
 
 // --- Tipos e Dados Mock (sem alteração) ---
 interface MaterialType {
@@ -137,9 +139,36 @@ export default function BrowseMaterialsScreen() {
   const router = useRouter(); // MUDANÇA 2: Instanciar o router
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [apiMaterials, setApiMaterials] = useState<MaterialType[]>([]);
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        const response = await api.get("/materials"); // Ajuste o endpoint se necessário
+        const formattedMaterials: MaterialType[] = response.data.map(
+          (mat: any) => ({
+            id: mat._id || mat.id,
+            name: mat.name,
+            image: mat.image,
+            description: mat.description,
+            location: mat.location,
+            quantity: mat.quantity,
+            category: mat.category,
+          })
+        );
+        setApiMaterials(formattedMaterials);
+      } catch (error) {
+        console.error("Erro ao buscar materiais da API:", error);
+      }
+    };
+
+    fetchMaterials();
+  }, []);
 
   const filteredMaterials = useMemo(() => {
-    return MOCK_MATERIALS.filter((material) => {
+    const combinedMaterials = [...MOCK_MATERIALS, ...apiMaterials];
+
+    return combinedMaterials.filter((material) => {
       const matchesCategory =
         !activeCategory || material.category === activeCategory;
       const matchesSearch = material.name
@@ -147,7 +176,7 @@ export default function BrowseMaterialsScreen() {
         .includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [searchQuery, activeCategory]);
+  }, [searchQuery, activeCategory, apiMaterials]);
 
   const ListHeader = (
     // ... (cabeçalho não precisa de alteração)

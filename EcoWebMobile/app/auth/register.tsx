@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import { EcoWebLogo } from '../../components/logo';
-
+import api from '../../src/services/api';
 
 export default function RegisterScreen() {
   const [nome, setNome] = useState('');
@@ -40,39 +40,51 @@ export default function RegisterScreen() {
     return password.length >= 6;
   };
 
-  const handleCadastro = () => {
-    if (!nome || !email || !senha || !confirmarSenha) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
+const handleCadastro = async () => {
+  if (!nome || !email || !senha || !confirmarSenha) {
+    Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    return;
+  }
 
-    if (!validateEmail(email)) {
-      Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
-      return;
-    }
+  if (!validateEmail(email)) {
+    Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
+    return;
+  }
 
-    if (!validatePassword(senha)) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
+  if (!validatePassword(senha)) {
+    Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+    return;
+  }
 
-    if (senha !== confirmarSenha) {
-      Alert.alert('Erro', 'As senhas não coincidem.');
-      return;
-    }
+  if (senha !== confirmarSenha) {
+    Alert.alert('Erro', 'As senhas não coincidem.');
+    return;
+  }
 
-    if (!acceptTerms) {
-      Alert.alert('Erro', 'Você deve aceitar os termos de uso.');
-      return;
-    }
+  if (!acceptTerms) {
+    Alert.alert('Erro', 'Você deve aceitar os termos de uso.');
+    return;
+  }
 
+  try {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      console.log('Usuário cadastrado:', { nome, email });
-      router.replace('/dashboard');
-    }, 1500);
-  };
+
+    await api.post('/auth/register', {
+      name: nome,
+      email,
+      password: senha,
+    });
+
+    Alert.alert('Sucesso', 'Conta criada com sucesso!');
+    router.replace('/login');
+  } catch (error: any) {
+    console.error(error.response?.data || error.message);
+    Alert.alert('Erro', 'Não foi possível cadastrar. Verifique os dados ou tente mais tarde.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,7 +95,7 @@ export default function RegisterScreen() {
         style={styles.gradient}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           <ScrollView 
