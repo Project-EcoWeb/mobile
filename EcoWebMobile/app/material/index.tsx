@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router"; // MUDANÇA 1: Importar useRouter
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState , useEffect } from "react";
 import {
   FlatList,
   Image,
@@ -12,12 +12,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// Certifique-se que o caminho para seu arquivo de Cores está correto
 import { Colors } from "../../constants/Colors";
-import { useEffect } from "react";
-import api from "../../src/services/api"; // ajuste o caminho se necessário
+import api from "../../src/services/api"; 
 
-// --- Tipos e Dados Mock (sem alteração) ---
 interface MaterialType {
   id: string;
   name: string;
@@ -86,7 +83,6 @@ const CATEGORIES: MaterialType["category"][] = [
   "Metal",
 ];
 
-// --- Componente do Card de Material ATUALIZADO ---
 const MaterialCard = ({
   item,
   router,
@@ -94,7 +90,6 @@ const MaterialCard = ({
   item: MaterialType;
   router: any;
 }) => (
-  // MUDANÇA 3: O card inteiro agora é um botão para os detalhes
   <TouchableOpacity
     style={styles.card}
     onPress={() => router.push(`/material/${item.id}`)}
@@ -114,12 +109,11 @@ const MaterialCard = ({
         <Ionicons name="cube-outline" size={16} color={Colors.grayText} />
         <Text style={styles.infoText}>{item.quantity}</Text>
       </View>
-      {/* MUDANÇA 4: O botão de contato agora navega para o chat */}
       <TouchableOpacity
         style={styles.contactButton}
         onPress={(e) => {
-          e.stopPropagation(); // Impede que o clique no botão ative o clique do card pai
-          router.push(`../chat/${item.id}`); // Assumindo que o ID do material pode ser usado como ID do chat
+          e.stopPropagation(); 
+          router.push(`../chat/${item.id}`); 
         }}
       >
         <Ionicons
@@ -134,9 +128,8 @@ const MaterialCard = ({
   </TouchableOpacity>
 );
 
-// --- Tela Principal ---
 export default function BrowseMaterialsScreen() {
-  const router = useRouter(); // MUDANÇA 2: Instanciar o router
+  const router = useRouter(); 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [apiMaterials, setApiMaterials] = useState<MaterialType[]>([]);
@@ -144,7 +137,7 @@ export default function BrowseMaterialsScreen() {
   useEffect(() => {
     const fetchMaterials = async () => {
       try {
-        const response = await api.get("/materials"); // Ajuste o endpoint se necessário
+        const response = await api.get("/materials");
         const formattedMaterials: MaterialType[] = response.data.map(
           (mat: any) => ({
             id: mat._id || mat.id,
@@ -179,7 +172,6 @@ export default function BrowseMaterialsScreen() {
   }, [searchQuery, activeCategory, apiMaterials]);
 
   const ListHeader = (
-    // ... (cabeçalho não precisa de alteração)
     <>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Encontre Materiais</Text>
@@ -232,7 +224,6 @@ export default function BrowseMaterialsScreen() {
       <StatusBar style="dark" />
       <FlatList
         data={filteredMaterials}
-        // MUDANÇA 5: Passar o router como prop para o MaterialCard
         renderItem={({ item }) => <MaterialCard item={item} router={router} />}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={ListHeader}
@@ -251,7 +242,6 @@ export default function BrowseMaterialsScreen() {
   );
 }
 
-// --- Estilos ATUALIZADOS ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,67 +15,65 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { EcoWebLogo } from '../components/logo'; // Certifique-se de que o caminho para 'logo' está correto
-import { useAuth } from '../context/AuthContext'; // IMPORTANTE: Caminho para o seu AuthContext
-import api from '../src/services/api';
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { EcoWebLogo } from "../components/logo";
+import { useAuth } from "../context/AuthContext";
+import api from "../src/services/api";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Adicionado estado para o tipo de usuário, mesclado do primeiro snippet
-  const [userType, setUserType] = useState<'creator' | 'company'>('creator');
+  const [userType, setUserType] = useState<"creator" | "company">("creator");
 
   const router = useRouter();
-  const { signIn } = useAuth(); // Pegar a função signIn do contexto
+  const { signIn } = useAuth();
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-const handleLogin = async () => {
-  if (!email || !password) {
-    Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-    return;
-  }
-  if (!validateEmail(email)) {
-    Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
-    return;
-  }
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Erro", "Por favor, preencha todos os campos.");
+      return;
+    }
+    if (!validateEmail(email)) {
+      Alert.alert("Erro", "Por favor, insira um e-mail válido.");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-    });
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-    const { user, token } = response.data;
+      const { user, token } = response.data;
 
-    await AsyncStorage.setItem('@ecoweb_token', token);
+      await AsyncStorage.setItem("@ecoweb_token", token);
 
-    signIn(userType, user.name, user.email, user.id, token);
-
-  } catch (error: any) {
-    const mensagem = error.response?.data?.message || 'Falha ao fazer login. Verifique seus dados.';
-    Alert.alert('Erro', mensagem);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      signIn(userType, user.name, user.email, user.id, token);
+    } catch (error: any) {
+      const mensagem =
+        error.response?.data?.message ||
+        "Falha ao fazer login. Verifique seus dados.";
+      Alert.alert("Erro", mensagem);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      
-      {/* Formas de fundo */}
+
       <View style={styles.backgroundShapes}>
         <View style={[styles.shape, styles.shape1]} />
         <View style={[styles.shape, styles.shape2]} />
@@ -83,16 +81,14 @@ const handleLogin = async () => {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          {/* Seção do Logo */}
           <View style={styles.logoSection}>
             <EcoWebLogo size={120} showText={true} variant="light" />
           </View>
 
-          {/* Seção de Boas-vindas */}
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Bem-vindo de volta</Text>
             <Text style={styles.welcomeSubtitle}>
@@ -100,28 +96,50 @@ const handleLogin = async () => {
             </Text>
           </View>
 
-          {/* Container do Formulário */}
           <View style={styles.formContainer}>
-            {/* Seletor de Tipo de Usuário, mesclado do primeiro snippet */}
             <View style={styles.userTypeSelector}>
-              <TouchableOpacity 
-                style={[styles.userTypeButton, userType === 'creator' && styles.userTypeActive]}
-                onPress={() => setUserType('creator')}
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === "creator" && styles.userTypeActive,
+                ]}
+                onPress={() => setUserType("creator")}
               >
-                <Text style={[styles.userTypeText, userType === 'creator' && styles.userTypeActiveText]}>Sou Criador</Text>
+                <Text
+                  style={[
+                    styles.userTypeText,
+                    userType === "creator" && styles.userTypeActiveText,
+                  ]}
+                >
+                  Sou Criador
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.userTypeButton, userType === 'company' && styles.userTypeActive]}
-                onPress={() => setUserType('company')}
+              <TouchableOpacity
+                style={[
+                  styles.userTypeButton,
+                  userType === "company" && styles.userTypeActive,
+                ]}
+                onPress={() => setUserType("company")}
               >
-                <Text style={[styles.userTypeText, userType === 'company' && styles.userTypeActiveText]}>Sou Empresa</Text>
+                <Text
+                  style={[
+                    styles.userTypeText,
+                    userType === "company" && styles.userTypeActiveText,
+                  ]}
+                >
+                  Sou Empresa
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Campos de Input */}
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Ionicons name="mail" size={20} color="#FFFFFF" style={styles.inputIcon} />
+                <Ionicons
+                  name="mail"
+                  size={20}
+                  color="#FFFFFF"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="E-mail"
@@ -134,7 +152,12 @@ const handleLogin = async () => {
               </View>
 
               <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed" size={20} color="#FFFFFF" style={styles.inputIcon} />
+                <Ionicons
+                  name="lock-closed"
+                  size={20}
+                  color="#FFFFFF"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder="Senha"
@@ -147,28 +170,26 @@ const handleLogin = async () => {
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeButton}
                 >
-                  <Ionicons 
-                    name={showPassword ? "eye" : "eye-off"} 
-                    size={20} 
-                    color="rgba(255, 255, 255, 0.7)" 
+                  <Ionicons
+                    name={showPassword ? "eye" : "eye-off"}
+                    size={20}
+                    color="rgba(255, 255, 255, 0.7)"
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Botão de Esqueceu a Senha */}
             <TouchableOpacity style={styles.forgotPassword}>
               <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
-            {/* Botão de Login */}
             <TouchableOpacity
               style={styles.loginButton}
               onPress={handleLogin}
               disabled={loading}
             >
               <LinearGradient
-                colors={['#FFFFFF', '#F5F5F5']}
+                colors={["#FFFFFF", "#F5F5F5"]}
                 style={styles.loginButtonGradient}
               >
                 {loading ? (
@@ -179,17 +200,15 @@ const handleLogin = async () => {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Divisor "ou" */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>ou</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Seção de Registro */}
             <View style={styles.registerSection}>
               <Text style={styles.registerText}>Não tem uma conta?</Text>
-              <Pressable onPress={() => router.push('./auth/register')}>
+              <Pressable onPress={() => router.push("./auth/register")}>
                 <Text style={styles.registerLink}>Criar conta</Text>
               </Pressable>
             </View>
@@ -200,20 +219,19 @@ const handleLogin = async () => {
   );
 }
 
-// Estilos mesclados e adicionados para o seletor de tipo de usuário
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1B5E20', // Cor de fundo principal
+    backgroundColor: "#1B5E20",
   },
   backgroundShapes: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
   shape: {
-    position: 'absolute',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    position: "absolute",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 20,
   },
   shape1: {
@@ -221,19 +239,19 @@ const styles = StyleSheet.create({
     height: 200,
     top: -50,
     right: -50,
-    transform: [{ rotate: '45deg' }],
+    transform: [{ rotate: "45deg" }],
   },
   shape2: {
     width: 150,
     height: 150,
     bottom: 100,
     left: -30,
-    transform: [{ rotate: '30deg' }],
+    transform: [{ rotate: "30deg" }],
   },
   shape3: {
     width: 100,
     height: 100,
-    top: '40%',
+    top: "40%",
     right: 20,
     borderRadius: 50,
   },
@@ -243,43 +261,43 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 30,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   logoSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   welcomeSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 50,
   },
   welcomeTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
   },
   formContainer: {
-    width: '100%',
+    width: "100%",
   },
   inputGroup: {
     marginBottom: 20,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 15,
     paddingHorizontal: 20,
     paddingVertical: 18,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   inputIcon: {
     marginRight: 15,
@@ -287,23 +305,23 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   eyeButton: {
     padding: 5,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 30,
   },
   forgotPasswordText: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 14,
   },
   loginButton: {
     borderRadius: 15,
     marginBottom: 30,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 4,
@@ -315,68 +333,68 @@ const styles = StyleSheet.create({
   loginButtonGradient: {
     paddingVertical: 18,
     borderRadius: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginButtonText: {
-    color: '#2E7D32', // Cor do texto do botão Entrar
+    color: "#2E7D32", // Cor do texto do botão Entrar
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 30,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
   },
   dividerText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: "rgba(255, 255, 255, 0.6)",
     paddingHorizontal: 20,
     fontSize: 14,
   },
   registerSection: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   registerText: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 16,
     marginRight: 5,
   },
   registerLink: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   // Estilos para o seletor de tipo de usuário
   userTypeSelector: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Fundo translúcido para o seletor
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.1)", // Fundo translúcido para o seletor
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)', // Borda translúcida
+    borderColor: "rgba(255, 255, 255, 0.2)", // Borda translúcida
     marginBottom: 20,
-    overflow: 'hidden', // Garante que o borderRadius se aplique bem
+    overflow: "hidden", // Garante que o borderRadius se aplique bem
   },
   userTypeButton: {
     flex: 1,
     paddingVertical: 15,
-    alignItems: 'center',
+    alignItems: "center",
   },
   userTypeActive: {
-    backgroundColor: '#FFFFFF', // Fundo branco quando ativo
+    backgroundColor: "#FFFFFF", // Fundo branco quando ativo
     borderRadius: 15, // Arredondamento para o botão ativo
   },
   userTypeText: {
-    color: '#FFFFFF', // Texto branco para botões inativos
+    color: "#FFFFFF", // Texto branco para botões inativos
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   userTypeActiveText: {
-    color: '#1B5E20', // Cor do texto quando ativo, combinando com o fundo da tela
+    color: "#1B5E20", // Cor do texto quando ativo, combinando com o fundo da tela
   },
 });

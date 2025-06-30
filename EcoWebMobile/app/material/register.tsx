@@ -31,7 +31,6 @@ const CATEGORIES = [
 export default function RegisterMaterialScreen() {
   const router = useRouter();
 
-  // Estados do formulário
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [materialName, setMaterialName] = useState("");
   const [category, setCategory] = useState("");
@@ -39,24 +38,6 @@ export default function RegisterMaterialScreen() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
   const [location, setLocation] = useState("");
-
-  const handlePickImage = async () => {
-    // A mesma função da tela de criar projeto
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Permissão necessária", "Acesso à galeria é necessário.");
-      return;
-    }
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
 
   const canRegister =
     imageUri && materialName && category && quantity && unit && location;
@@ -77,17 +58,15 @@ export default function RegisterMaterialScreen() {
         return;
       }
 
-      // Payload da requisição
       const payload = {
         name: materialName,
-        image: imageUri, // ATENÇÃO: veja nota abaixo sobre upload de imagem
+        image: imageUri, 
         category,
         description,
         quantity: `${quantity} ${unit}`,
         location,
       };
 
-      // Envio para a API
       await api.post("/materials", payload);
 
       Alert.alert(
@@ -129,7 +108,6 @@ export default function RegisterMaterialScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.sectionTitle}>Foto do Material</Text>
-        {/* URL da Imagem */}
         <Text style={styles.sectionTitle}>URL da Imagem</Text>
         <TextInput
           style={styles.input}
@@ -215,7 +193,6 @@ export default function RegisterMaterialScreen() {
   );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -270,7 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginTop: 10,
-    marginBottom: 16, // espaço visual entre imagem e input de título
+    marginBottom: 16, 
     borderWidth: 1,
     borderColor: Colors.neutral,
   },

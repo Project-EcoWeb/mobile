@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,10 +14,9 @@ import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
-// --- Tipos e Dados Mock ---
 interface FavoriteItem {
   id: string;
-  title: string; // Título unificado para projetos e materiais
+  title: string; 
   image: string;
   type: 'project' | 'material';
 }
@@ -31,7 +30,6 @@ const MOCK_FAVORITE_MATERIALS: FavoriteItem[] = [
     { id: 'm2', title: 'Garrafas de Vidro Verdes', image: 'https://i.imgur.com/gD6yYJL.jpg', type: 'material' },
 ];
 
-// --- Componente do Card de Favorito ---
 const FavoriteCard = ({ item, onRemove }: { item: FavoriteItem, onRemove: (id: string) => void }) => {
     const router = useRouter();
     const route = `/${item.type}/${item.id}`;
@@ -49,7 +47,6 @@ const FavoriteCard = ({ item, onRemove }: { item: FavoriteItem, onRemove: (id: s
     );
 };
 
-// --- Tela Principal ---
 export default function FavoritesScreen() {
     const [activeTab, setActiveTab] = useState<'projetos' | 'materiais'>('projetos');
     const [favoriteProjects, setFavoriteProjects] = useState(MOCK_FAVORITE_PROJECTS);
@@ -103,7 +100,7 @@ export default function FavoritesScreen() {
                 renderItem={({ item }) => <FavoriteCard item={item} onRemove={handleRemove} />}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
-                key={activeTab} // Importante para forçar a re-renderização da grid ao trocar de aba
+                key={activeTab} 
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
@@ -117,7 +114,6 @@ export default function FavoritesScreen() {
     );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
     container: {
         flex: 1,

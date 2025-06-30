@@ -149,7 +149,6 @@ const Onboarding = () => {
         ref={slidesRef}
       />
 
-      {/* Bottom Section */}
       <View style={styles.bottomContainer}>
         <Paginator />
         

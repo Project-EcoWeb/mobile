@@ -15,8 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
-// --- Tipos e Dados Mock ---
-const CURRENT_USER_ID = 'me'; // Simula o nosso ID de usuário
+const CURRENT_USER_ID = 'me';
 
 interface Message {
     id: string;
@@ -33,7 +32,6 @@ const MOCK_CHAT_HISTORY: { [key: string]: Message[] } = {
     ]
 };
 
-// --- Componente da Bolha de Mensagem ---
 const MessageBubble = ({ item }: { item: Message }) => {
     const isSender = item.senderId === CURRENT_USER_ID;
     return (
@@ -52,7 +50,6 @@ const MessageBubble = ({ item }: { item: Message }) => {
 };
 
 
-// --- Tela Principal ---
 export default function ChatScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const messages = MOCK_CHAT_HISTORY[id] || [];
@@ -61,7 +58,6 @@ export default function ChatScreen() {
     const handleSend = () => {
         if (newMessage.trim() === '') return;
         console.log('Enviando:', newMessage);
-        // Aqui você adicionaria a lógica para enviar a mensagem para a API
         setNewMessage('');
     };
     
@@ -79,7 +75,7 @@ export default function ChatScreen() {
                     data={messages}
                     renderItem={MessageBubble}
                     keyExtractor={(item) => item.id}
-                    inverted // Começa a lista de baixo para cima, essencial para chat!
+                    inverted 
                 />
                 
                 <View style={styles.inputContainer}>
@@ -100,11 +96,9 @@ export default function ChatScreen() {
 }
 
 
-// --- Estilos ---
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.white },
     chatList: { flex: 1, paddingHorizontal: 12 },
-    // Estilos das bolhas de mensagem
     messageRow: { flexDirection: 'row', marginVertical: 8 },
     senderRow: { justifyContent: 'flex-end' },
     receiverRow: { justifyContent: 'flex-start' },
@@ -113,7 +107,6 @@ const styles = StyleSheet.create({
     receiverBubble: { backgroundColor: Colors.neutral, borderBottomLeftRadius: 5 },
     senderText: { color: Colors.white, fontSize: 16 },
     receiverText: { color: Colors.text, fontSize: 16 },
-    // Estilos do campo de digitação
     inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderTopColor: Colors.neutral },
     textInput: { flex: 1, backgroundColor: Colors.neutral, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
     sendButton: { marginLeft: 8, justifyContent: 'center', alignItems: 'center' },

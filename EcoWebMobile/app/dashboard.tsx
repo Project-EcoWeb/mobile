@@ -1,4 +1,3 @@
-// Código atualizado com "Sua Jornada Criativa" exibida em grid 2x2
 import React from "react";
 import {
   View,
@@ -292,7 +291,7 @@ export default function ExplorarScreen() {
               <View
                 style={[
                   styles.quickLinkWrapperGrid,
-                  { marginRight: index % 2 === 0 ? 12 : 0 }, // margem à direita no primeiro da linha
+                  { marginRight: index % 2 === 0 ? 12 : 0 }, 
                 ]}
               >
                 <QuickLink item={link} router={router} />

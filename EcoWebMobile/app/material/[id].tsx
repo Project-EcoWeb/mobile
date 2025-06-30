@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
-    Alert,
     Image,
     ScrollView,
     StyleSheet,
@@ -13,8 +12,6 @@ import {
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
 
-// --- TIPO ATUALIZADO ---
-// Reflete exatamente a estrutura do seu array de dados mock
 interface MaterialType {
   id: string;
   name: string;
@@ -27,17 +24,14 @@ interface MaterialType {
   verified: boolean;
 }
 
-// Seus dados mock, agora dentro do componente para fácil referência
 const MOCK_MATERIALS: MaterialType[] = [
   { id: "m1", name: "Paletes de Pinho", image: "https://i.imgur.com/y2v3fRU.jpg", description: "Em bom estado, ideal para móveis e projetos DIY.", location: "Boa Vista, RR", quantity: "15 unidades", category: "Madeira", rating: 4.8, verified: true },
   { id: "m2", name: "Garrafas de Vidro Verdes", image: "https://i.imgur.com/gD6yYJL.jpg", description: "Limpos e sem rótulo, perfeitos para artesanato.", location: "Boa Vista, RR", quantity: "5 caixas", category: "Vidro", rating: 4.5, verified: true },
   { id: "m3", name: "Retalhos de Algodão Colorido", image: "https://i.imgur.com/Bm2cWYO.jpg", description: "Diversas cores e tamanhos para projetos criativos.", location: "Boa Vista, RR", quantity: "Aprox. 5kg", category: "Tecido", rating: 4.2, verified: false },
   { id: 'm4', name: 'Sobras de Canos de PVC', image: 'https://reciclasampa.com.br/imagens/noticias/grandes/3257_destaque.jpg', description: 'Diversos diâmetros.', location: 'Boa Vista, RR', quantity: '20 peças', category: 'Plástico', rating: 3.2, verified: true},
   { id: 'm5', name: 'Latas de Alumínio', image: 'https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2021/08/latas-de-aluminio.jpg', description: 'Amassadas para reciclagem.', location: 'Boa Vista, RR', quantity: '3 sacos grandes', category: 'Metal', rating: 5.0, verified: false },
-  // ... adicione outros se necessário
 ];
 
-// --- Componente de Bloco de Informação ---
 const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap, label: string, value: string }) => (
     <View style={styles.infoBlock}>
         <Ionicons name={icon} size={24} color={Colors.primary} />
@@ -48,7 +42,6 @@ const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
     </View>
 );
 
-// --- Componente de Avaliação (Estrelas) ---
 const Rating = ({ rating }: { rating: number }) => (
     <View style={styles.ratingContainer}>
         <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
@@ -67,13 +60,11 @@ export default function MaterialDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   
-  // MUDANÇA: Usando .find() para procurar o material no array
   const material = MOCK_MATERIALS.find(m => m.id === id);
 
   const [isFavorited, setIsFavorited] = useState(false);
 
   const onShare = async () => {
-    // ... (função de compartilhar permanece a mesma)
   };
 
   if (!material) {
@@ -133,7 +124,6 @@ export default function MaterialDetailScreen() {
   );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background, },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },

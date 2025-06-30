@@ -14,7 +14,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
-// --- Tipos e Dados Mock ---
 interface CompanyMaterial {
   id: string;
   name: string;
@@ -30,7 +29,6 @@ const MOCK_COMPANY_MATERIALS: CompanyMaterial[] = [
   { id: 'm6', name: 'Tambores de Plástico 200L', image: 'https://http2.mlstatic.com/D_NQ_NP_797782-MLB49929289694_052022-O.jpg', quantity: '8 unidades', status: 'Concluído' },
 ];
 
-// --- Componente do Card de Gerenciamento ---
 const ManagementCard = ({ item, onEdit, onDelete }: { item: CompanyMaterial, onEdit: (id: string) => void, onDelete: (id: string) => void }) => {
     const statusColor = item.status === 'Ativo' ? Colors.primary : item.status === 'Reservado' ? '#FFA000' : Colors.grayText;
 
@@ -57,7 +55,6 @@ const ManagementCard = ({ item, onEdit, onDelete }: { item: CompanyMaterial, onE
 };
 
 
-// --- Tela Principal ---
 export default function ManageMaterialsScreen() {
     const router = useRouter();
     const [materials, setMaterials] = useState(MOCK_COMPANY_MATERIALS);
@@ -80,7 +77,6 @@ export default function ManageMaterialsScreen() {
     };
 
     const handleEdit = (idToEdit: string) => {
-        // Futuramente, navegaria para a tela de edição
         Alert.alert("Editar Material", `Navegando para editar o item ${idToEdit}.`);
     };
 
@@ -129,7 +125,6 @@ export default function ManageMaterialsScreen() {
     );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background, },
     headerButton: { marginRight: 10 },
