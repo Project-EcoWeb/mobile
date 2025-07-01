@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { imagesProjects } from '../../assets/images/image.js';
 
-// --- Tipos e Dados Mock ---
 interface UserProject {
   id: string;
   titulo: string;
@@ -23,13 +23,13 @@ interface UserProject {
   favorites: number;
 }
 
+
 const MOCK_USER_PROJECTS: UserProject[] = [
-  { id: 'p1', titulo: 'Cadeira com Paletes', imagem: 'https://i.imgur.com/O7pzYcL.jpg', views: 1250, favorites: 89 },
-  { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: 'https://i.imgur.com/WXJr9rJ.jpg', views: 873, favorites: 56 },
-  { id: 'p6', titulo: 'Estante de Caixotes', imagem: 'https://i.imgur.com/6XyJqfH.jpg', views: 2340, favorites: 152 },
+  { id: 'p1', titulo: 'Cadeira com Paletes', imagem: imagesProjects.cadeira, views: 1250, favorites: 89 },
+  { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: imagesProjects.vaso, views: 873, favorites: 56 },
+  { id: 'p6', titulo: 'Estante de Caixotes', imagem: imagesProjects.estante, views: 2340, favorites: 152 },
 ];
 
-// --- Componente do Card de Gerenciamento ---
 const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: (id: string) => void, onDelete: (id: string) => void }) => {
     const router = useRouter();
     return (
@@ -40,7 +40,6 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
             <View style={styles.cardContent}>
                 <Text style={styles.cardTitle} numberOfLines={2}>{item.titulo}</Text>
                 
-                {/* Stats de Engajamento */}
                 <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                         <Ionicons name="eye-outline" size={16} color={Colors.grayText} />
@@ -52,7 +51,6 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
                     </View>
                 </View>
 
-                {/* Botões de Ação */}
                 <View style={styles.actionsRow}>
                     <TouchableOpacity style={styles.actionButton} onPress={() => onEdit(item.id)}>
                         <Ionicons name="pencil-outline" size={20} color={Colors.primary} />
@@ -66,13 +64,12 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
     );
 };
 
-// --- Tela Principal ---
 export default function MyProjectsScreen() {
     const router = useRouter();
     const [myProjects, setMyProjects] = useState(MOCK_USER_PROJECTS);
 
     const handleAddNew = () => {
-        router.push('/project/register'); // Rota da tela de criação de projeto
+        router.push('/project/register');
     };
 
     const handleDelete = (idToDelete: string) => {
@@ -90,7 +87,6 @@ export default function MyProjectsScreen() {
 
     const handleEdit = (idToEdit: string) => {
         Alert.alert("Editar Projeto", `Navegando para editar o projeto ${idToEdit}.`);
-        // router.push(`/projeto/editar/${idToEdit}`); // Futura tela de edição
     };
 
     return (
@@ -127,7 +123,6 @@ export default function MyProjectsScreen() {
     );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
     container: {
         flex: 1,

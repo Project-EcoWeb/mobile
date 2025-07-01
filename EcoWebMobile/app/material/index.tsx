@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
 import api from "../../src/services/api"; 
-
+import { imagesMaterials } from "../../assets/images/image.js";
 interface MaterialType {
   id: string;
   name: string;
@@ -29,7 +29,7 @@ const MOCK_MATERIALS: MaterialType[] = [
   {
     id: "m1",
     name: "Paletes de Pinho",
-    image: "https://i.imgur.com/y2v3fRU.jpg",
+    image: imagesMaterials.paletes ,
     description: "Em bom estado, ideal para móveis.",
     location: "Boa Vista, RR",
     quantity: "15 unidades",
@@ -38,7 +38,7 @@ const MOCK_MATERIALS: MaterialType[] = [
   {
     id: "m2",
     name: "Garrafas de Vidro Verdes",
-    image: "https://i.imgur.com/gD6yYJL.jpg",
+    image: imagesMaterials.garrafas,
     description: "Limpos e sem rótulo.",
     location: "Boa Vista, RR",
     quantity: "5 caixas",
@@ -47,7 +47,7 @@ const MOCK_MATERIALS: MaterialType[] = [
   {
     id: "m3",
     name: "Retalhos de Algodão Colorido",
-    image: "https://i.imgur.com/Bm2cWYO.jpg",
+    image: imagesMaterials.retalhos,
     description: "Diversas cores e tamanhos.",
     location: "Boa Vista, RR",
     quantity: "Aprox. 5kg",
@@ -56,8 +56,7 @@ const MOCK_MATERIALS: MaterialType[] = [
   {
     id: "m4",
     name: "Sobras de Canos de PVC",
-    image:
-      "https://reciclasampa.com.br/imagens/noticias/grandes/3257_destaque.jpg",
+    image: imagesMaterials.canos,
     description: "Diversos diâmetros.",
     location: "Boa Vista, RR",
     quantity: "20 peças",
@@ -66,8 +65,7 @@ const MOCK_MATERIALS: MaterialType[] = [
   {
     id: "m5",
     name: "Latas de Alumínio",
-    image:
-      "https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2021/08/latas-de-aluminio.jpg",
+    image: imagesMaterials.latas,
     description: "Amassadas para reciclagem.",
     location: "Boa Vista, RR",
     quantity: "3 sacos grandes",

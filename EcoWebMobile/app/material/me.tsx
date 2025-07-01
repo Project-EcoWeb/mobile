@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { imagesMaterials } from '../../assets/images/image.js';
 
 interface CompanyMaterial {
   id: string;
@@ -23,10 +24,10 @@ interface CompanyMaterial {
 }
 
 const MOCK_COMPANY_MATERIALS: CompanyMaterial[] = [
-  { id: 'm1', name: 'Paletes de Pinho (Lote 12)', image: 'https://i.imgur.com/y2v3fRU.jpg', quantity: '15 unidades', status: 'Ativo' },
-  { id: 'm2', name: 'Garrafas de Vidro Verdes', image: 'https://i.imgur.com/gD6yYJL.jpg', quantity: '5 caixas', status: 'Reservado' },
-  { id: 'm4', name: 'Sobras de Canos de PVC', image: 'https://reciclasampa.com.br/imagens/noticias/grandes/3257_destaque.jpg', quantity: '20 peças', status: 'Ativo' },
-  { id: 'm6', name: 'Tambores de Plástico 200L', image: 'https://http2.mlstatic.com/D_NQ_NP_797782-MLB49929289694_052022-O.jpg', quantity: '8 unidades', status: 'Concluído' },
+  { id: 'm1', name: 'Paletes de Pinho (Lote 12)', image: imagesMaterials.paletes, quantity: '15 unidades', status: 'Ativo' },
+  { id: 'm2', name: 'Garrafas de Vidro Verdes', image: imagesMaterials.garrafas, quantity: '5 caixas', status: 'Reservado' },
+  { id: 'm4', name: 'Sobras de Canos de PVC', image: imagesMaterials.canos, quantity: '20 peças', status: 'Ativo' },
+  { id: 'm6', name: 'Tambores de Plástico 200L', image: imagesMaterials.tambores, quantity: '8 unidades', status: 'Concluído' },
 ];
 
 const ManagementCard = ({ item, onEdit, onDelete }: { item: CompanyMaterial, onEdit: (id: string) => void, onDelete: (id: string) => void }) => {

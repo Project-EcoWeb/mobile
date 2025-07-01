@@ -13,7 +13,7 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-
+import { imagesMaterials, imagesProjects } from '../../assets/images/image.js';
 interface FavoriteItem {
   id: string;
   title: string; 
@@ -22,12 +22,12 @@ interface FavoriteItem {
 }
 
 const MOCK_FAVORITE_PROJECTS: FavoriteItem[] = [
-  { id: 'p1', title: 'Cadeira com Paletes', image: 'https://i.imgur.com/O7pzYcL.jpg', type: 'project' },
-  { id: 'p4', title: 'Luminária de Pote de Vidro', image: 'https://i.imgur.com/L4A2a4A.jpg', type: 'project' },
+  { id: 'p1', title: 'Cadeira com Paletes', image: imagesProjects.cadeira, type: 'project' },
+  { id: 'p4', title: 'Luminária de Pote de Vidro', image: imagesProjects.luminaria, type: 'project' },
 ];
 
 const MOCK_FAVORITE_MATERIALS: FavoriteItem[] = [
-    { id: 'm2', title: 'Garrafas de Vidro Verdes', image: 'https://i.imgur.com/gD6yYJL.jpg', type: 'material' },
+    { id: 'm2', title: 'Garrafas de Vidro Verdes', image: imagesMaterials.garrafas, type: 'material' },
 ];
 
 const FavoriteCard = ({ item, onRemove }: { item: FavoriteItem, onRemove: (id: string) => void }) => {

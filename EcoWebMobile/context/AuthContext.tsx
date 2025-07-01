@@ -31,11 +31,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // NOVO: Inicia como true
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Em um app real, aqui você verificaria o AsyncStorage por um token.
-    // Para simulação, apenas finalizamos o carregamento após 1 segundo.
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
@@ -59,15 +57,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     setUser(authenticatedUser);
-    // (Opcional) Salve no AsyncStorage se quiser persistência:
-    // await AsyncStorage.setItem('@ecoweb_user', JSON.stringify(authenticatedUser));
+
   };
 
   const signOut = () => {
     setUser(null);
   };
 
-  // Adiciona isLoading ao valor do provider
   return (
     <AuthContext.Provider value={{ user, isLoading, signIn, signOut }}>
       {children}

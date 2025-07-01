@@ -16,7 +16,7 @@ import { useRouter } from "expo-router";
 
 import { Colors } from "../constants/Colors";
 import { useAuth } from "../context/AuthContext";
-
+import { imagesMaterials, imagesProjects } from "../assets/images/image.js";
 interface ProjectType {
   id: string;
   titulo: string;
@@ -78,6 +78,7 @@ type AppSection =
   | MaterialListSection
   | QuickLinksSection;
 
+
 const sectionsData: AppSection[] = [
   {
     title: "Projetos",
@@ -89,17 +90,17 @@ const sectionsData: AppSection[] = [
           {
             id: "p1",
             titulo: "Cadeira com Paletes",
-            imagem: "https://i.imgur.com/O7pzYcL.jpg",
+            imagem: imagesProjects.cadeira,
           },
           {
             id: "p2",
             titulo: "Vasos com Garrafa PET",
-            imagem: "https://i.imgur.com/WXJr9rJ.jpg",
+            imagem: imagesProjects.vaso,
           },
           {
             id: "p3",
             titulo: "Bolsa de Retalhos",
-            imagem: "https://i.imgur.com/Bm2cWYO.jpg",
+            imagem: imagesProjects.bolsa,
           },
         ],
       },
@@ -128,13 +129,13 @@ const sectionsData: AppSection[] = [
         id: "m1",
         nome: "Paletes de madeira",
         local: "Madeireira Verde",
-        imagem: "https://i.imgur.com/y2v3fRU.jpg",
+        imagem: imagesMaterials.paletes,
       },
       {
         id: "m2",
         nome: "Garrafas de Vidro",
         local: "Restaurante Sabor",
-        imagem: "https://i.imgur.com/gD6yYJL.jpg",
+        imagem: imagesMaterials.garrafas,
       },
     ],
   },
@@ -580,7 +581,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickLinkWrapperGrid: {
-    width: "48.5%", // Duas colunas com espaçamento
+    width: "48.5%",
     marginBottom: 12,
   },
 });

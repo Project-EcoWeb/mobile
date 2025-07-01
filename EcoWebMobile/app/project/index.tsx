@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   FlatList,
   Image,
@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
-import { useEffect } from "react";
 import api from "../../src/services/api";
+import { imagesProjects } from "../../assets/images/image";
 
 interface ProjectType {
   id: string;
@@ -30,7 +30,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     id: "p1",
     titulo: "Cadeira com Paletes",
     autor: "Joana Silva",
-    imagem: "https://i.imgur.com/O7pzYcL.jpg",
+    imagem: imagesProjects.cadeira,
     category: "Móveis",
     difficulty: "Médio",
   },
@@ -38,7 +38,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     id: "p2",
     titulo: "Vasos com Garrafa PET",
     autor: "Lucas Costa",
-    imagem: "https://i.imgur.com/WXJr9rJ.jpg",
+    imagem: imagesProjects.vaso,
     category: "Jardim",
     difficulty: "Fácil",
   },
@@ -46,7 +46,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     id: "p3",
     titulo: "Bolsa de Retalhos",
     autor: "Mariana Costa",
-    imagem: "https://i.imgur.com/Bm2cWYO.jpg",
+    imagem: imagesProjects.bolsa,
     category: "Moda",
     difficulty: "Médio",
   },
@@ -54,7 +54,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     id: "p4",
     titulo: "Luminária de Pote de Vidro",
     autor: "Pedro Alves",
-    imagem: "https://i.imgur.com/L4A2a4A.jpg",
+    imagem: imagesProjects.luminaria,
     category: "Decoração",
     difficulty: "Fácil",
   },
@@ -63,7 +63,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     titulo: "Horta Vertical de PVC",
     autor: "Ana Beatriz",
     imagem:
-      "https://i.pinimg.com/736x/87/4b/58/874b584d43610996841221e7847c23a5.jpg",
+      imagesProjects.horta,
     category: "Jardim",
     difficulty: "Difícil",
   },
@@ -71,7 +71,7 @@ const MOCK_ALL_PROJECTS: ProjectType[] = [
     id: "p6",
     titulo: "Estante de Caixotes",
     autor: "Ricardo Lima",
-    imagem: "https://i.imgur.com/6XyJqfH.jpg",
+    imagem: imagesProjects.estante,
     category: "Móveis",
     difficulty: "Fácil",
   },
@@ -84,7 +84,6 @@ const CATEGORIES: ProjectType["category"][] = [
   "Moda",
 ];
 
-// --- Componente do Card da Grid ---
 const ProjectGridCard = ({ item }: { item: ProjectType }) => {
   const router = useRouter();
   return (
@@ -103,7 +102,6 @@ const ProjectGridCard = ({ item }: { item: ProjectType }) => {
   );
 };
 
-// --- Tela Principal ---
 export default function AllProjectsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -212,7 +210,7 @@ export default function AllProjectsScreen() {
         data={filteredProjects}
         renderItem={({ item }) => <ProjectGridCard item={item} />}
         keyExtractor={(item) => item.id}
-        numColumns={2} // A mágica da grid acontece aqui!
+        numColumns={2}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
@@ -226,7 +224,6 @@ export default function AllProjectsScreen() {
   );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -235,7 +232,6 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 10,
   },
-  // --- Cabeçalho e Filtros ---
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -285,7 +281,6 @@ const styles = StyleSheet.create({
   chipTextSelected: {
     color: Colors.white,
   },
-  // --- Grid e Cards ---
   card: {
     flex: 1,
     margin: 10,
@@ -297,7 +292,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: "100%",
-    aspectRatio: 1, // Imagem quadrada para um grid uniforme
+    aspectRatio: 1, 
     backgroundColor: Colors.neutral,
   },
   cardContent: {
@@ -314,7 +309,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.text,
   },
-  // --- Estado Vazio ---
   emptyContainer: {
     flex: 1,
     marginTop: 150,

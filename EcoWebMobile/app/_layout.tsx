@@ -18,7 +18,10 @@ function Layout() {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!user) {
+    if(user === null){
+      router.replace('/');
+    }
+    else if (!user) {
       router.replace("/login");
     } else if (user) {
       router.replace("/dashboard");
