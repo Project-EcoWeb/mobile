@@ -25,7 +25,7 @@ interface UserProfile {
 }
 
 const MOCK_USER: UserProfile = {
-    name: 'Ruan Oliveira',
+    name: 'User',
     avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjk0_N63nHYFWfulIm6nhg190bP5ZF5GxXng&s',
     userType: 'creator',
     stats: {

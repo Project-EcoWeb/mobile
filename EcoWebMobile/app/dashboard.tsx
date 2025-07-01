@@ -1,22 +1,22 @@
-import React from "react";
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
   FlatList,
-  TextInput,
+  Image,
   SectionList,
   SectionListData,
-} from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Colors } from '../constants/Colors';
+import { useAuth } from '../context/AuthContext';
+import { imagesMaterials, imagesProjects } from '../assets/images/image.js';
 
-import { Colors } from "../constants/Colors";
-import { useAuth } from "../context/AuthContext";
-import { imagesMaterials, imagesProjects } from "../assets/images/image.js";
 interface ProjectType {
   id: string;
   titulo: string;
@@ -34,50 +34,11 @@ interface CategoryType {
   icon: keyof typeof Ionicons.glyphMap;
 }
 interface QuickLinkType {
-  id: string;
-  title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  route: string;
+    id: string;
+    title: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    route: string;
 }
-
-interface HorizontalSectionWrapper<T> {
-  id: string;
-  items: T[];
-}
-
-type SectionListItemT =
-  | HorizontalSectionWrapper<ProjectType>
-  | HorizontalSectionWrapper<CategoryType>
-  | HorizontalSectionWrapper<QuickLinkType>
-  | MaterialType;
-
-interface FeaturedSection {
-  title: string;
-  type: "featured";
-  data: HorizontalSectionWrapper<ProjectType>[];
-}
-interface CategoriesSection {
-  title: string;
-  type: "categories";
-  data: HorizontalSectionWrapper<CategoryType>[];
-}
-interface MaterialListSection {
-  title: string;
-  type: "material_list";
-  data: MaterialType[];
-}
-interface QuickLinksSection {
-  title: string;
-  type: "quick_links";
-  data: HorizontalSectionWrapper<QuickLinkType>[];
-}
-
-type AppSection =
-  | FeaturedSection
-  | CategoriesSection
-  | MaterialListSection
-  | QuickLinksSection;
-
 
 const sectionsData: AppSection[] = [
   {
@@ -176,6 +137,44 @@ const sectionsData: AppSection[] = [
   },
 ];
 
+type HorizontalSectionWrapper<T> = {
+    id: string;
+    items: T[];
+};
+
+type SectionListItemT =
+  | HorizontalSectionWrapper<ProjectType>
+  | HorizontalSectionWrapper<CategoryType>
+  | HorizontalSectionWrapper<QuickLinkType>
+  | MaterialType;
+  
+interface FeaturedSection {
+  title: string;
+  type: "featured";
+  data: HorizontalSectionWrapper<ProjectType>[]; 
+}
+interface CategoriesSection {
+  title: string;
+  type: "categories";
+  data: HorizontalSectionWrapper<CategoryType>[]; 
+}
+interface MaterialListSection {
+  title: string;
+  type: "material_list";
+  data: MaterialType[]; 
+}
+interface QuickLinksSection {
+  title: string;
+  type: "quick_links";
+  data: HorizontalSectionWrapper<QuickLinkType>[]; 
+}
+type AppSection =
+  | FeaturedSection
+  | CategoriesSection
+  | MaterialListSection
+  | QuickLinksSection;
+
+
 const CategoryCard = ({ item }: { item: CategoryType }) => (
   <TouchableOpacity style={styles.categoryCard}>
     <Ionicons name={item.icon} size={28} color={Colors.primary} />
@@ -223,21 +222,34 @@ export default function ExplorarScreen() {
   const { user } = useAuth();
 
   const adaptedSectionsData = React.useMemo(() => {
+
     const sections = JSON.parse(JSON.stringify(sectionsData)) as AppSection[];
     const quickLinksSection = sections.find((s) => s.type === "quick_links") as
       | QuickLinksSection
       | undefined;
 
     if (quickLinksSection && user?.userType === "company") {
-      const newPostLink = quickLinksSection.data[0].items.find(
+      const links = quickLinksSection.data[0].items;
+
+      const newPostLink = links.find(
         (l) => l.title === "Nova Postagem"
       );
       if (newPostLink) {
-        newPostLink.title = "Novo Material ";
+        newPostLink.title = "Novo Material";
         newPostLink.icon = "cube-outline";
         newPostLink.route = "/material/register";
       }
+
+      const myProjectsLink = links.find(
+        (l) => l.title === "Meus Projetos"
+      );
+      if (myProjectsLink) {
+        myProjectsLink.title = "Meus Materiais";
+        myProjectsLink.icon = "archive-outline"; 
+        myProjectsLink.route = "/material/me"; 
+      }
     }
+    
     return sections;
   }, [user?.userType]);
 
@@ -288,6 +300,7 @@ export default function ExplorarScreen() {
             data={quickLinksWrapper.items}
             keyExtractor={(item) => item.id}
             numColumns={2}
+            scrollEnabled={false}
             renderItem={({ item: link, index }) => (
               <View
                 style={[
@@ -299,7 +312,6 @@ export default function ExplorarScreen() {
               </View>
             )}
             columnWrapperStyle={styles.quickLinkGridRow}
-            scrollEnabled={false}
           />
         );
       }
@@ -422,17 +434,6 @@ const styles = StyleSheet.create({
   messagesButton: {
     padding: 8,
   },
-  notificationBadge: {
-    position: "absolute",
-    right: 8,
-    top: 8,
-    backgroundColor: "#E91E63",
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: "#F4F6F8",
-  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -549,14 +550,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 14,
   },
-  quickLinkRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 20,
-    marginBottom: 12,
+  quickLinkGridRow: {
+    justifyContent: 'space-between',
+    marginBottom: 12
   },
-  quickLinkWrapper: {
-    width: "48.5%",
+  quickLinkWrapperGrid: {
+    width: '48.5%',
   },
   quickLink: {
     flex: 1,
@@ -573,15 +572,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: Colors.text,
-  },
-  quickLinkGridRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 20,
-    marginBottom: 12,
-  },
-  quickLinkWrapperGrid: {
-    width: "48.5%",
-    marginBottom: 12,
   },
 });

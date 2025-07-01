@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
+import { imagesPerfilMessages } from "../../assets/images/image";
 
 interface Conversation {
   id: string;
@@ -25,7 +26,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: "chat1",
     name: "Madeireira Verde",
-    avatar: "https://i.imgur.com/y2v3fRU.jpg",
+    avatar: imagesPerfilMessages.madeireira,
     lastMessage: "Olá! Sim, os paletes ainda estão disponíveis.",
     timestamp: "10:30",
     unreadCount: 1,
@@ -33,7 +34,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: "chat2",
     name: "Joana Silva",
-    avatar: "https://i.imgur.com/O7pzYcL.jpg",
+    avatar: imagesPerfilMessages.mulherUser,
     lastMessage: "Adorei a ideia da cadeira! Teria mais fotos?",
     timestamp: "Ontem",
     unreadCount: 0,
@@ -41,7 +42,7 @@ const MOCK_CONVERSATIONS: Conversation[] = [
   {
     id: "chat3",
     name: "Ateliê Ponto a Ponto",
-    avatar: "https://i.imgur.com/Bm2cWYO.jpg",
+    avatar: imagesPerfilMessages.atelie,
     lastMessage: "Combinado. Pode buscar amanhã.",
     timestamp: "17/06",
     unreadCount: 0,
