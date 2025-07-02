@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 10,
     alignItems: "center",
-    flexDirection: "row", // Para alinhar ícone e texto
+    flexDirection: "row", 
     justifyContent: "center",
   },
   contactButtonText: {

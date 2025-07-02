@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginButtonText: {
-    color: "#2E7D32", // Cor do texto do botão Entrar
+    color: "#2E7D32", 
     fontSize: 18,
     fontWeight: "bold",
   },
@@ -370,15 +370,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  // Estilos para o seletor de tipo de usuário
   userTypeSelector: {
     flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.1)", // Fundo translúcido para o seletor
+    backgroundColor: "rgba(255, 255, 255, 0.1)", 
     borderRadius: 15,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)", // Borda translúcida
+    borderColor: "rgba(255, 255, 255, 0.2)",
     marginBottom: 20,
-    overflow: "hidden", // Garante que o borderRadius se aplique bem
+    overflow: "hidden",
   },
   userTypeButton: {
     flex: 1,
@@ -386,15 +385,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   userTypeActive: {
-    backgroundColor: "#FFFFFF", // Fundo branco quando ativo
-    borderRadius: 15, // Arredondamento para o botão ativo
+    backgroundColor: "#FFFFFF", 
+    borderRadius: 15, 
   },
   userTypeText: {
-    color: "#FFFFFF", // Texto branco para botões inativos
+    color: "#FFFFFF", 
     fontSize: 16,
     fontWeight: "600",
   },
   userTypeActiveText: {
-    color: "#1B5E20", // Cor do texto quando ativo, combinando com o fundo da tela
+    color: "#1B5E20",
   },
 });

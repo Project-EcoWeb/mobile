@@ -1,13 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   Alert,
   Image,
-  KeyboardAvoidingView, // NOVO: Importado
-  Platform, // NOVO: Importado
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,7 +29,7 @@ export default function CreateProjectScreen() {
   const [materials, setMaterials] = useState<string[]>([]);
   const [currentMaterial, setCurrentMaterial] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
-  const [youtubeUrl, setYoutubeUrl] = useState(""); // NOVO: Estado para o vídeo
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [difficulty, setDifficulty] = useState<
     "Facil" | "Medio" | "Dificil" | ""
   >("");
@@ -51,7 +50,6 @@ export default function CreateProjectScreen() {
         return;
       }
 
-      // Montar o payload da requisição
       const payload = {
         title,
         image: imageUri,
@@ -63,11 +61,10 @@ export default function CreateProjectScreen() {
         video: youtubeUrl,
       };
 
-      // POST para a API (ajuste a URL base para a sua)
       await api.post("/projects", payload);
 
       Alert.alert("Sucesso", "Projeto cadastrado com sucesso!");
-      router.back(); // Volta para a tela anterior
+      router.back();
     } catch (error: any) {
       console.error("Erro ao cadastrar projeto", error);
       Alert.alert(
@@ -77,27 +74,6 @@ export default function CreateProjectScreen() {
     }
   };
 
-  const handlePickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permissão necessária",
-        "Precisamos de acesso à sua galeria para selecionar uma imagem."
-      );
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri);
-    }
-  };
 
   const handleAddMaterial = () => {
     if (
@@ -125,17 +101,13 @@ export default function CreateProjectScreen() {
 
   const canPublish = title && imageUri && category && difficulty;
 
-  // Envolvemos o ScrollView com o KeyboardAvoidingView
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"} // CORREÇÃO 2: Comportamento do teclado
+      behavior={Platform.OS === "ios" ? "padding" : "height"} 
     >
       <StatusBar style="dark" />
       <View style={styles.header}>
-        {/* <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="close-outline" size={32} color={Colors.text} />
-        </TouchableOpacity> */}
         <Text style={styles.headerTitle}>Novo Projeto</Text>
         <TouchableOpacity
           style={[
@@ -150,7 +122,6 @@ export default function CreateProjectScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* URL da Imagem */}
         <Text style={styles.sectionTitle}>URL da Imagem</Text>
         <TextInput
           style={styles.input}
@@ -170,7 +141,6 @@ export default function CreateProjectScreen() {
           </View>
         ) : null}
 
-        {/* Título */}
         <TextInput
           style={styles.input}
           placeholder="Título do seu projeto"
@@ -178,7 +148,6 @@ export default function CreateProjectScreen() {
           onChangeText={setTitle}
         />
 
-        {/* Categoria */}
         <Text style={styles.sectionTitle}>Categoria</Text>
         <View style={styles.categoryContainer}>
           {CATEGORIES.map((cat) => (
@@ -199,7 +168,6 @@ export default function CreateProjectScreen() {
           ))}
         </View>
 
-        {/* Dificuldade */}
         <Text style={styles.sectionTitle}>Nível de Dificuldade</Text>
         <View style={styles.categoryContainer}>
           {["Facil", "Medio", "Dificil"].map((level) => (
@@ -220,7 +188,6 @@ export default function CreateProjectScreen() {
           ))}
         </View>
 
-        {/* Materiais */}
         <Text style={styles.sectionTitle}>Materiais Utilizados</Text>
         <View style={styles.materialInputContainer}>
           <TextInput
@@ -252,7 +219,6 @@ export default function CreateProjectScreen() {
           ))}
         </View>
 
-        {/* Descrição */}
         <Text style={styles.sectionTitle}>Descrição</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
@@ -262,7 +228,6 @@ export default function CreateProjectScreen() {
           multiline
         />
 
-        {/* Passo a Passo */}
         <Text style={styles.sectionTitle}>Passo a Passo</Text>
         {steps.map((step, index) => (
           <TextInput
@@ -279,7 +244,6 @@ export default function CreateProjectScreen() {
           <Text style={styles.addStepButtonText}>Adicionar Passo</Text>
         </TouchableOpacity>
 
-        {/* CORREÇÃO 1: Campo para o Tutorial em Vídeo */}
         <Text style={styles.sectionTitle}>Tutorial em Vídeo (Opcional)</Text>
         <TextInput
           style={styles.input}
@@ -294,7 +258,6 @@ export default function CreateProjectScreen() {
   );
 }
 
-// --- Estilos ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -316,7 +279,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.text,
     textAlign: "center",
-    // margin: 'auto'
   },
   publishButton: {
     backgroundColor: Colors.primary,
@@ -356,7 +318,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     marginTop: 10,
-    marginBottom: 16, // espaço visual entre imagem e input de título
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.neutral,
   },
@@ -456,8 +418,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     padding: 15,
     borderRadius: 12,
-    marginTop: 4, // Diminuí a margem superior
-    marginBottom: 20, // Adicionei margem inferior
+    marginTop: 4,
+    marginBottom: 20, 
     borderWidth: 1,
     borderColor: Colors.neutral,
   },
