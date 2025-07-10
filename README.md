@@ -42,8 +42,8 @@ Aplicativo mobile desenvolvido com **React Native** e **Expo** para o projeto **
 ### Clone o repositório
 
 ```bash
-git clone https://github.com/seuusuario/EcoWebMobile.git
-cd EcoWebMobile
+git clone https://github.com/Project-EcoWeb/mobile.git
+cd mobile
 ```
 
 ### Instale as dependências
