@@ -114,22 +114,6 @@ export default function LoginScreen() {
                   Sou Criador
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.userTypeButton,
-                  userType === "company" && styles.userTypeActive,
-                ]}
-                onPress={() => setUserType("company")}
-              >
-                <Text
-                  style={[
-                    styles.userTypeText,
-                    userType === "company" && styles.userTypeActiveText,
-                  ]}
-                >
-                  Sou Empresa
-                </Text>
-              </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
