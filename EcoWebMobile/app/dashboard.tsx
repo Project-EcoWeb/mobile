@@ -391,7 +391,7 @@ export default function ExplorarScreen() {
             <View style={styles.topHeaderRow}>
               <View>
                 <Text style={styles.greeting}>Bem-vindo de volta,</Text>
-                <Text style={styles.username}>{user?.name || "User"} 👋</Text>
+                <Text style={styles.username}>{user?.name || "User"}</Text>
               </View>
               <TouchableOpacity
                 style={styles.messagesButton}
