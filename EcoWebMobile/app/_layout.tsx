@@ -16,15 +16,12 @@ function Layout() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
-
-    if(user === null){
-      router.replace('/');
-    }
-    else if (!user) {
-      router.replace("/login");
-    } else if (user) {
-      router.replace("/dashboard");
+    if (!isLoading) {
+      if (user === null) {
+        router.replace("/login");
+      } else {
+        router.replace("/dashboard");
+      }
     }
   }, [user, isLoading, router]);
 
