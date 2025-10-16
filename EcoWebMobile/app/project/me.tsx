@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     FlatList,
     Image,
@@ -12,33 +13,29 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner';
 import { Colors } from '../../constants/Colors';
 import { imagesProjects } from '../../assets/images/image.js';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getMeProjects } from "../../src/services/projectServices";
 
 interface UserProject {
   id: string;
-  titulo: string;
-  imagem: string;
+  title: string;
+  image: string;
   views: number;
   favorites: number;
 }
-
-
-const MOCK_USER_PROJECTS: UserProject[] = [
-  { id: 'p1', titulo: 'Cadeira com Paletes', imagem: imagesProjects.cadeira, views: 1250, favorites: 89 },
-  { id: 'p2', titulo: 'Vasos com Garrafa PET', imagem: imagesProjects.vaso, views: 873, favorites: 56 },
-  { id: 'p6', titulo: 'Estante de Caixotes', imagem: imagesProjects.estante, views: 2340, favorites: 152 },
-];
 
 const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: (id: string) => void, onDelete: (id: string) => void }) => {
     const router = useRouter();
     return (
         <View style={styles.card}>
             <TouchableOpacity onPress={() => router.push(`/project/${item.id}`)}>
-                <Image source={{ uri: item.imagem }} style={styles.cardImage} />
+                <Image source={{ uri: item.image }} style={styles.cardImage} />
             </TouchableOpacity>
             <View style={styles.cardContent}>
-                <Text style={styles.cardTitle} numberOfLines={2}>{item.titulo}</Text>
+                <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
                 
                 <View style={styles.statsRow}>
                     <View style={styles.statItem}>
@@ -66,11 +63,59 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
 
 export default function MyProjectsScreen() {
     const router = useRouter();
-    const [myProjects, setMyProjects] = useState(MOCK_USER_PROJECTS);
+    const [token, setToken] = useState<string | null>(null);
+    const [myProjects, setMyProjects] = useState<UserProject[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadToken = async () => {
+            const storedToken = await AsyncStorage.getItem('@ecoweb_token'); 
+            if (storedToken) {
+                setToken(storedToken);
+            } else {
+                setIsLoading(false);
+            }
+        };
+        loadToken();
+    }, []); 
 
     const handleAddNew = () => {
         router.push('/project/register');
     };
+
+    const fetchProjects = useCallback(async () => {
+        if (!token) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await getMeProjects(token);
+
+            const mappedProjects = response.data.map((project: any) => ({
+                id: project._id, 
+                title: project.title,
+                image: project.image,
+                views: project.views || 0,
+                favorites: project.favorites || 0, 
+            }));
+
+            setMyProjects(mappedProjects);
+        } catch (error) {
+            console.error("Erro detalhado ao buscar projetos:", error); 
+            toast.error("Falha ao buscar projetos", {
+                description: "Não foi possível carregar seus projetos. Tente novamente."
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [token]);
+
+    useEffect(() => {
+        if (token) {
+            fetchProjects();
+        }
+    }, [token, fetchProjects]);
 
     const handleDelete = (idToDelete: string) => {
         Alert.alert(
@@ -86,8 +131,17 @@ export default function MyProjectsScreen() {
     };
 
     const handleEdit = (idToEdit: string) => {
-        Alert.alert("Editar Projeto", `Navegando para editar o projeto ${idToEdit}.`);
+        Alert.alert("Editar Projeto", `Função Indisponivel`);
     };
+
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={styles.loadingText}>Carregando seus projetos...</Text>
+            </View>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -105,18 +159,20 @@ export default function MyProjectsScreen() {
                 renderItem={({ item }) => <MyProjectCard item={item} onEdit={handleEdit} onDelete={handleDelete} />}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
+                onRefresh={fetchProjects}
+                refreshing={isLoading}
                 contentContainerStyle={styles.listContainer}
                 ListHeaderComponent={
-                    <Text style={styles.listHeaderTitle}>Gerencie suas criações e acompanhe o engajamento.</Text>
+                    <Text style={styles.listHeaderTitle}>Gerencie suas criações</Text>
                 }
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
+                    !isLoading && (<View style={styles.emptyContainer}>
                         <Ionicons name="bulb-outline" size={60} color={Colors.grayText} />
                         <Text style={styles.emptyText}>Você ainda não publicou nenhum projeto.</Text>
                         <TouchableOpacity style={styles.emptyButton} onPress={handleAddNew}>
                             <Text style={styles.emptyButtonText}>Criar primeiro projeto</Text>
                         </TouchableOpacity>
-                    </View>
+                    </View>)
                 }
             />
         </SafeAreaView>
@@ -127,6 +183,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.background,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: Colors.background,
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 16,
+        color: Colors.grayText,
     },
     headerButton: {
         backgroundColor: Colors.primary,
