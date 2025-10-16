@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { useAuth } from "../../context/AuthContext";
 
 interface UserProfile {
     name: string;
@@ -55,7 +56,7 @@ const ProfileRow = ({ icon, title, onPress }: { icon: keyof typeof Ionicons.glyp
 
 export default function ProfileScreen() {
     const router = useRouter();
-
+    const { user } = useAuth();
     const handleLogout = () => {
         Alert.alert(
             "Sair da Conta",
@@ -67,6 +68,8 @@ export default function ProfileScreen() {
         );
     };
 
+    if (!user) return;
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <Stack.Screen options={{ headerShown: false }} />
@@ -74,7 +77,7 @@ export default function ProfileScreen() {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.profileHeader}>
                     <Image source={{ uri: MOCK_USER.avatarUrl }} style={styles.avatar} />
-                    <Text style={styles.profileName}>{MOCK_USER.name}</Text>
+                    <Text style={styles.profileName}>{user.name}</Text>
                 </View>
 
                 <View style={styles.statsContainer}>
