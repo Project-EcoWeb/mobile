@@ -140,7 +140,7 @@ export default function BrowseMaterialsScreen() {
           (mat: any) => ({
             id: mat._id || mat.id,
             name: mat.name,
-            image: mat.image,
+            image: mat.image || 'https://meiosustentavel.com.br/wp-content/uploads/2020/08/eco-3516734_1920.png',
             description: mat.description,
             location: mat.location,
             quantity: mat.quantity,
