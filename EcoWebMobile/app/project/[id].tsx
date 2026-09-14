@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { Colors } from "../../constants/Colors";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
 import { imagesProjects } from "../../assets/images/image.js";
 import { getProjectById } from "../../src/services/projectServices";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ProjectDataType {
   id: string;
@@ -192,6 +192,7 @@ const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 
 export default function ProjectDetailScreen() {
   const router = useRouter();
+  const { requireAuthentication } = useAuthenticationGate();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [project, setProject] = useState<ProjectDataType | null>(null);
@@ -221,10 +222,7 @@ export default function ProjectDetailScreen() {
       }
 
       try {
-        const token = await AsyncStorage.getItem("@ecoweb_token");
-        if (!token) throw new Error("Usuário não autenticado.");
-
-        const response = await getProjectById(id, token);
+        const response = await getProjectById(id);
         const normalizedProject = normalizeApiProject(response.data);
         setProject(normalizedProject);
 
@@ -244,6 +242,14 @@ export default function ProjectDetailScreen() {
       setPlaying(false);
     }
   }, []);
+
+  const toggleFavorite = () => {
+    if (!requireAuthentication()) {
+      return;
+    }
+
+    setIsFavorited((value) => !value);
+  };
 
   if (isLoading) {
     return (
@@ -282,7 +288,7 @@ export default function ProjectDetailScreen() {
         <View style={styles.contentContainer}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{project.titulo}</Text>
-            <TouchableOpacity onPress={() => setIsFavorited(!isFavorited)}>
+            <TouchableOpacity onPress={toggleFavorite}>
               <Ionicons
                 name={isFavorited ? "heart" : "heart-outline"}
                 size={32}

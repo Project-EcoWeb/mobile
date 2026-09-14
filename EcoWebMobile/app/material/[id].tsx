@@ -13,8 +13,8 @@ import {
   Alert
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { useAuthenticationGate } from '../../hooks/useAuthenticationGate';
 import { imagesMaterials } from '../../assets/images/image.js';
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMaterialById } from "../../src/services/materialService";
 
 interface CompanyType {
@@ -90,6 +90,7 @@ const Rating = ({ rating }: { rating: number }) => (
 
 export default function MaterialDetailScreen() {
   const router = useRouter();
+  const { navigateWithAuthentication, requireAuthentication } = useAuthenticationGate();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [material, setMaterial] = useState<MaterialType | null>(null);
@@ -118,12 +119,7 @@ export default function MaterialDetailScreen() {
       }
 
       try {
-        const token = await AsyncStorage.getItem('@ecoweb_token');
-        if (!token) {
-          throw new Error("Usuário não autenticado.");
-        }
-
-        const response = await getMaterialById(id, token);
+        const response = await getMaterialById(id);
         const apiData = response.data;
 
         const normalizedMaterial: MaterialType = {
@@ -164,6 +160,14 @@ export default function MaterialDetailScreen() {
   const onShare = async () => {
     Alert.alert('Função indisponivel')
    };
+
+  const toggleFavorite = () => {
+    if (!requireAuthentication()) {
+      return;
+    }
+
+    setIsFavorited((value) => !value);
+  };
 
   const openMaps = (address: string) => {
     Alert.alert('Função indisponivel')
@@ -212,7 +216,7 @@ export default function MaterialDetailScreen() {
               <Text style={styles.categoryChipText}>{material.category}</Text>
             </View>
             <View style={styles.actionsRow}>
-              <TouchableOpacity onPress={() => setIsFavorited(!isFavorited)}>
+              <TouchableOpacity onPress={toggleFavorite}>
                 <Ionicons name={isFavorited ? "heart" : "heart-outline"} size={28} color={isFavorited ? '#0D4D44' : Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={onShare}>
@@ -318,7 +322,10 @@ export default function MaterialDetailScreen() {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.ctaButton} onPress={() => router.push(`../chat/${'msg1'}`)}>
+      <TouchableOpacity
+        style={styles.ctaButton}
+        onPress={() => navigateWithAuthentication(`/chat/${material.id}`)}
+      >
         <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.white} />
         <Text style={styles.ctaButtonText}>Tenho Interesse</Text>
       </TouchableOpacity>

@@ -96,12 +96,12 @@ const Onboarding = () => {
     if (currentIndex < slides.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      router.replace('/login');
+      router.replace('/dashboard');
     }
   };
 
   const skip = () => {
-    router.replace('/login');
+    router.replace('/dashboard');
   };
 
   const renderItem = ({ item }: { item: typeof slides[0] }) => (
@@ -130,7 +130,7 @@ const Onboarding = () => {
       
       <TouchableOpacity style={styles.skipButton} onPress={skip}>
         <Text style={[styles.skipText, { color: slides[currentIndex].primaryColor }]}>
-          Pular
+          Explorar sem conta
         </Text>
       </TouchableOpacity>
 
@@ -159,7 +159,7 @@ const Onboarding = () => {
           onPress={goToNext}
         >
           <Text style={styles.buttonText}>
-            {currentIndex === slides.length - 1 ? 'Começar Jornada' : 'Próximo'}
+            {currentIndex === slides.length - 1 ? 'Explorar projetos' : 'Próximo'}
           </Text>
         </TouchableOpacity>
       </View>
