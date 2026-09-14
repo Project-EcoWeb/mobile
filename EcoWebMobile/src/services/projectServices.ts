@@ -11,7 +11,7 @@ export async function getMeProjects(token: string) {
             return response;
         }
         throw new Error('Erro ao buscar Projetos');
-    } catch (error) {
+    } catch {
         throw new Error('Erro de conexão com Servidor');
     }
 }

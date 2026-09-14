@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -42,17 +42,55 @@ const slides = [
   },
 ];
 
+const viewConfig = { viewAreaCoveragePercentThreshold: 50 };
+
+const Paginator = ({
+  currentIndex,
+  scrollX,
+}: {
+  currentIndex: number;
+  scrollX: Animated.Value;
+}) => (
+  <View style={styles.paginatorContainer}>
+    {slides.map((_, index) => {
+      const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+      const dotWidth = scrollX.interpolate({
+        inputRange,
+        outputRange: [10, 20, 10],
+        extrapolate: 'clamp',
+      });
+      const opacity = scrollX.interpolate({
+        inputRange,
+        outputRange: [0.3, 1, 0.3],
+        extrapolate: 'clamp',
+      });
+
+      return (
+        <Animated.View
+          key={index.toString()}
+          style={[
+            styles.dot,
+            {
+              width: dotWidth,
+              opacity,
+              backgroundColor: slides[currentIndex].primaryColor,
+            },
+          ]}
+        />
+      );
+    })}
+  </View>
+);
+
 const Onboarding = () => {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const [scrollX] = useState(() => new Animated.Value(0));
   const slidesRef = useRef<FlatList>(null);
 
-  const viewableItemsChanged = useRef(({ viewableItems }: any) => {
+  const viewableItemsChanged = useCallback(({ viewableItems }: any) => {
     setCurrentIndex(viewableItems[0]?.index || 0);
-  }).current;
-
-  const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+  }, []);
 
   const goToNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -66,43 +104,7 @@ const Onboarding = () => {
     router.replace('/login');
   };
 
-  const Paginator = () => {
-    return (
-      <View style={styles.paginatorContainer}>
-        {slides.map((_, i) => {
-          const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
-          
-          const dotWidth = scrollX.interpolate({
-            inputRange,
-            outputRange: [10, 20, 10],
-            extrapolate: 'clamp',
-          });
-
-          const opacity = scrollX.interpolate({
-            inputRange,
-            outputRange: [0.3, 1, 0.3],
-            extrapolate: 'clamp',
-          });
-
-          return (
-            <Animated.View
-              style={[
-                styles.dot,
-                {
-                  width: dotWidth,
-                  opacity,
-                  backgroundColor: slides[currentIndex].primaryColor,
-                },
-              ]}
-              key={i.toString()}
-            />
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderItem = ({ item, index }: { item: typeof slides[0]; index: number }) => (
+  const renderItem = ({ item }: { item: typeof slides[0] }) => (
     <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} resizeMode="cover" />
@@ -150,7 +152,7 @@ const Onboarding = () => {
       />
 
       <View style={styles.bottomContainer}>
-        <Paginator />
+        <Paginator currentIndex={currentIndex} scrollX={scrollX} />
         
         <TouchableOpacity 
           style={[styles.button, { backgroundColor: slides[currentIndex].primaryColor }]} 

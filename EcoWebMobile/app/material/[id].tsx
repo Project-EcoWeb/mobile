@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Linking,
   Alert
 } from 'react-native';
 import { Colors } from '../../constants/Colors';

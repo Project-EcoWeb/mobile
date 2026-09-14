@@ -16,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EcoWebLogo } from "../components/logo";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
@@ -26,8 +25,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const [userType, setUserType] = useState<"creator" | "company">("creator");
 
   const router = useRouter();
   const { signIn } = useAuth();
@@ -57,9 +54,18 @@ export default function LoginScreen() {
 
       const { user, token } = response.data;
 
-      await AsyncStorage.setItem("@ecoweb_token", token);
+      const userType =
+        user.userType === "company" || user.type === "company" || user.role === "company"
+          ? "company"
+          : "creator";
 
-      signIn(userType, user.name, user.email, user.id, token);
+      await signIn({
+        id: user.id ?? user._id,
+        name: user.name,
+        email: user.email,
+        userType,
+        token,
+      });
     } catch (error: any) {
       const mensagem =
         error.response?.data?.message ||
@@ -97,24 +103,6 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.formContainer}>
-            <View style={styles.userTypeSelector}>
-              <TouchableOpacity
-                style={[
-                  styles.userTypeButton,
-                  userType === "creator" && styles.userTypeActive,
-                ]}
-                onPress={() => setUserType("creator")}
-              >
-                <Text
-                  style={[
-                    styles.userTypeText,
-                    userType === "creator" && styles.userTypeActiveText,
-                  ]}
-                >
-                  Sou Criador
-                </Text>
-              </TouchableOpacity>
-            </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>

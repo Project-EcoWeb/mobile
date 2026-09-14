@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   featuredCardGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.35)",
   },
   featuredCardContent: {
