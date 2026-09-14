@@ -19,8 +19,10 @@ import {
 } from 'react-native';
 import { EcoWebLogo } from '../../components/logo';
 import api from '../../src/services/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
+  const insets = useSafeAreaInsets();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -30,6 +32,15 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/login');
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -94,6 +105,14 @@ const handleCadastro = async () => {
         colors={['#E8F5E8', '#F1F8E9', '#FFFFFF']}
         style={styles.gradient}
       >
+        <TouchableOpacity
+          accessibilityLabel="Voltar para o login"
+          accessibilityRole="button"
+          onPress={handleBack}
+          style={[styles.backButton, { top: insets.top + 8 }]}
+        >
+          <Ionicons name="arrow-back" size={24} color="#2E7D32" />
+        </TouchableOpacity>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
@@ -267,6 +286,15 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   keyboardView: {
     flex: 1,

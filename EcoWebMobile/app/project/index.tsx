@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState, useEffect } from "react";
 import {
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
+import { PageHeader } from "../../components/PageHeader";
 import api from "../../src/services/api";
 import { imagesProjects } from "../../assets/images/image";
 
@@ -204,8 +205,8 @@ export default function AllProjectsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <Stack.Screen options={{ title: "Projetos Criativos" }} />
       <StatusBar style="dark" />
+      <PageHeader title="Projetos Criativos" />
       <FlatList
         data={filteredProjects}
         renderItem={({ item }) => <ProjectGridCard item={item} />}

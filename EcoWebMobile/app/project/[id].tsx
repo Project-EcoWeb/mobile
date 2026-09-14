@@ -13,9 +13,11 @@ import {
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { Colors } from "../../constants/Colors";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
 import { imagesProjects } from "../../assets/images/image.js";
 import { getProjectById } from "../../src/services/projectServices";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { PageHeader } from "../../components/PageHeader";
 
 interface ProjectDataType {
   id: string;
@@ -192,6 +194,8 @@ const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 
 export default function ProjectDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { requireAuthentication } = useAuthenticationGate();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [project, setProject] = useState<ProjectDataType | null>(null);
@@ -200,6 +204,15 @@ export default function ProjectDetailScreen() {
 
   const [isFavorited, setIsFavorited] = useState(false);
   const [playing, setPlaying] = useState(false);
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/project");
+  };
 
   useEffect(() => {
     const loadProject = async () => {
@@ -221,10 +234,7 @@ export default function ProjectDetailScreen() {
       }
 
       try {
-        const token = await AsyncStorage.getItem("@ecoweb_token");
-        if (!token) throw new Error("Usuário não autenticado.");
-
-        const response = await getProjectById(id, token);
+        const response = await getProjectById(id);
         const normalizedProject = normalizeApiProject(response.data);
         setProject(normalizedProject);
 
@@ -245,23 +255,39 @@ export default function ProjectDetailScreen() {
     }
   }, []);
 
+  const toggleFavorite = () => {
+    if (!requireAuthentication()) {
+      return;
+    }
+
+    setIsFavorited((value) => !value);
+  };
+
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={{ marginTop: 10, color: Colors.grayText }}>Carregando projeto...</Text>
-      </View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <PageHeader title="Projeto" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={{ marginTop: 10, color: Colors.grayText }}>Carregando projeto...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error || !project) {
     return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />
-        <Text style={{ marginTop: 10, fontSize: 16, color: Colors.grayText }}>
-          {error || "Projeto não encontrado!"}
-        </Text>
-      </View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <PageHeader title="Projeto" />
+        <View style={styles.centerContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />
+          <Text style={{ marginTop: 10, fontSize: 16, color: Colors.grayText }}>
+            {error || "Projeto não encontrado!"}
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -272,8 +298,10 @@ export default function ProjectDetailScreen() {
         <View style={styles.imageContainer}>
           <Image source={{ uri: project.imagem }} style={styles.heroImage} />
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            accessibilityLabel="Voltar para projetos"
+            accessibilityRole="button"
+            style={[styles.backButton, { top: insets.top + 12 }]}
+            onPress={handleBack}
           >
             <Ionicons name="arrow-back" size={24} color={Colors.white} />
           </TouchableOpacity>
@@ -282,7 +310,7 @@ export default function ProjectDetailScreen() {
         <View style={styles.contentContainer}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{project.titulo}</Text>
-            <TouchableOpacity onPress={() => setIsFavorited(!isFavorited)}>
+            <TouchableOpacity onPress={toggleFavorite}>
               <Ionicons
                 name={isFavorited ? "heart" : "heart-outline"}
                 size={32}
@@ -356,7 +384,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 60,
     left: 20,
     backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,

@@ -1,12 +1,8 @@
 import api from "./api";
 
-export async function getMaterialById(id: string, token: string) {
+export async function getMaterialById(id: string) {
     try {
-        const response = await api.get(`/materials/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await api.get(`/materials/${id}`);
         if (response.status === 200) {
             return response;
         }

@@ -15,7 +15,9 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
+import { useAuthenticationGate } from '../hooks/useAuthenticationGate';
 import { imagesMaterials, imagesProjects } from '../assets/images/image.js';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ProjectType {
   id: string;
@@ -184,16 +186,24 @@ const CategoryCard = ({ item }: { item: CategoryType }) => (
   </TouchableOpacity>
 );
 
-const QuickLink = ({ item, router }: { item: QuickLinkType; router: any }) => (
+const QuickLink = ({
+  item,
+  isLocked,
+  onPress,
+}: {
+  item: QuickLinkType;
+  isLocked: boolean;
+  onPress: () => void;
+}) => (
   <TouchableOpacity
     style={styles.quickLink}
-    onPress={() => router.push(item.route)}
+    onPress={onPress}
     activeOpacity={0.7}
   >
     <View style={styles.quickLinkIconContainer}>
-      <Ionicons name={item.icon} size={26} color={Colors.primary} />
+      <Ionicons name={isLocked ? "lock-closed-outline" : item.icon} size={26} color={Colors.primary} />
     </View>
-    <Text style={styles.quickLinkText}>{item.title}</Text>
+    <Text style={styles.quickLinkText}>{isLocked ? `${item.title} · Entrar` : item.title}</Text>
   </TouchableOpacity>
 );
 
@@ -237,6 +247,7 @@ const MaterialRow = ({ item, router }: { item: MaterialType; router: any }) => (
 export default function ExplorarScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { isAuthenticated, navigateWithAuthentication } = useAuthenticationGate();
 
   const adaptedSectionsData = React.useMemo(() => {
 
@@ -325,7 +336,11 @@ export default function ExplorarScreen() {
                   { marginRight: index % 2 === 0 ? 12 : 0 },
                 ]}
               >
-                <QuickLink item={link} router={router} />
+              <QuickLink
+                item={link}
+                isLocked={!isAuthenticated}
+                onPress={() => navigateWithAuthentication(link.route)}
+              />
               </View>
             )}
             columnWrapperStyle={styles.quickLinkGridRow}
@@ -371,7 +386,7 @@ export default function ExplorarScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
       <SectionList
         sections={
@@ -390,12 +405,14 @@ export default function ExplorarScreen() {
           <View style={styles.header}>
             <View style={styles.topHeaderRow}>
               <View>
-                <Text style={styles.greeting}>Bem-vindo de volta,</Text>
-                <Text style={styles.username}>{user?.name || "User"}</Text>
+                <Text style={styles.greeting}>
+                  {user ? "Bem-vindo de volta," : "Bem-vindo à EcoWeb,"}
+                </Text>
+                <Text style={styles.username}>{user?.name || "Visitante"}</Text>
               </View>
               <TouchableOpacity
                 style={styles.messagesButton}
-                onPress={() => router.push("/profile/messages")}
+                onPress={() => navigateWithAuthentication("/profile/messages")}
                 activeOpacity={0.7}
               >
                 <Ionicons
@@ -403,7 +420,7 @@ export default function ExplorarScreen() {
                   size={24}
                   color={Colors.primary}
                 />
-                <View style={styles.notificationBadge} />
+                {user && <View style={styles.notificationBadge} />}
               </TouchableOpacity>
             </View>
             <View style={styles.searchContainer}>
@@ -425,7 +442,7 @@ export default function ExplorarScreen() {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -436,7 +453,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 20,
     backgroundColor: "#F8FAFB",
   },

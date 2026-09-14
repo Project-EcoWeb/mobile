@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState , useEffect } from "react";
 import {
@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
+import { PageHeader } from "../../components/PageHeader";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
 import api from "../../src/services/api"; 
 import { imagesMaterials } from "../../assets/images/image.js";
 interface MaterialType {
@@ -84,9 +86,11 @@ const CATEGORIES: MaterialType["category"][] = [
 const MaterialCard = ({
   item,
   router,
+  onContact,
 }: {
   item: MaterialType;
   router: any;
+  onContact: (materialId: string) => void;
 }) => (
   <TouchableOpacity
     style={styles.card}
@@ -111,7 +115,7 @@ const MaterialCard = ({
         style={styles.contactButton}
         onPress={(e) => {
           e.stopPropagation(); 
-          router.push(`../chat/${item.id}`); 
+          onContact(item.id);
         }}
       >
         <Ionicons
@@ -128,6 +132,7 @@ const MaterialCard = ({
 
 export default function BrowseMaterialsScreen() {
   const router = useRouter(); 
+  const { navigateWithAuthentication } = useAuthenticationGate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [apiMaterials, setApiMaterials] = useState<MaterialType[]>([]);
@@ -218,11 +223,17 @@ export default function BrowseMaterialsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="dark" />
+      <PageHeader title="Materiais" />
       <FlatList
         data={filteredMaterials}
-        renderItem={({ item }) => <MaterialCard item={item} router={router} />}
+        renderItem={({ item }) => (
+          <MaterialCard
+            item={item}
+            router={router}
+            onContact={(materialId) => navigateWithAuthentication(`/chat/${materialId}`)}
+          />
+        )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContainer}

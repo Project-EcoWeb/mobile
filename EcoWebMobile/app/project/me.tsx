@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { getMeProjects } from "../../src/services/projectServices";
 
@@ -127,24 +128,28 @@ export default function MyProjectsScreen() {
 
     if (isLoading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={styles.loadingText}>Carregando seus projetos...</Text>
-            </View>
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <StatusBar style="dark" />
+                <PageHeader title="Meus Projetos" />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.primary} />
+                    <Text style={styles.loadingText}>Carregando seus projetos...</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen options={{ 
-                title: 'Meus Projetos',
-                headerRight: () => (
+            <StatusBar style="dark" />
+            <PageHeader
+                title="Meus Projetos"
+                right={
                     <TouchableOpacity onPress={handleAddNew} style={styles.headerButton}>
                         <Text style={styles.headerButtonText}>+ Criar Novo</Text>
                     </TouchableOpacity>
-                )
-            }} />
-            <StatusBar style="dark" />
+                }
+            />
             <FlatList
                 data={myProjects}
                 renderItem={({ item }) => <MyProjectCard item={item} onEdit={handleEdit} onDelete={handleDelete} />}

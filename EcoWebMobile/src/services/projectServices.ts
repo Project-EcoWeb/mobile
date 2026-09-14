@@ -16,13 +16,9 @@ export async function getMeProjects(token: string) {
     }
 }
 
-export async function getProjectById(id: string, token: string) {
+export async function getProjectById(id: string) {
     try {
-        const response = await api.get(`/projects/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
+        const response = await api.get(`/projects/${id}`)
 
         if (response.status === 200) {
             return response;
