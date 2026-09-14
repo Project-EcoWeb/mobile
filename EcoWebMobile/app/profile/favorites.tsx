@@ -47,6 +47,23 @@ const FavoriteCard = ({ item, onRemove }: { item: FavoriteItem, onRemove: (id: s
     );
 };
 
+const FavoritesTab = ({
+    active,
+    name,
+    title,
+    onPress,
+}: {
+    active: boolean;
+    name: 'projetos' | 'materiais';
+    title: string;
+    onPress: (name: 'projetos' | 'materiais') => void;
+}) => (
+    <TouchableOpacity onPress={() => onPress(name)} style={styles.tab}>
+        <Text style={[styles.tabText, active && styles.activeTabText]}>{title}</Text>
+        {active && <View style={styles.activeTabIndicator} />}
+    </TouchableOpacity>
+);
+
 export default function FavoritesScreen() {
     const [activeTab, setActiveTab] = useState<'projetos' | 'materiais'>('projetos');
     const [favoriteProjects, setFavoriteProjects] = useState(MOCK_FAVORITE_PROJECTS);
@@ -78,21 +95,14 @@ export default function FavoritesScreen() {
         ? "Você ainda não favoritou nenhum projeto." 
         : "Nenhum material salvo nos seus favoritos.";
 
-    const Tab = ({ name, title }: { name: 'projetos' | 'materiais', title: string }) => (
-        <TouchableOpacity onPress={() => setActiveTab(name)} style={styles.tab}>
-            <Text style={[styles.tabText, activeTab === name && styles.activeTabText]}>{title}</Text>
-            {activeTab === name && <View style={styles.activeTabIndicator} />}
-        </TouchableOpacity>
-    );
-
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <Stack.Screen options={{ title: 'Meus Favoritos' }} />
             <StatusBar style="dark" />
 
             <View style={styles.tabsContainer}>
-                <Tab name="projetos" title="Projetos" />
-                <Tab name="materiais" title="Materiais" />
+                <FavoritesTab active={activeTab === 'projetos'} name="projetos" title="Projetos" onPress={setActiveTab} />
+                <FavoritesTab active={activeTab === 'materiais'} name="materiais" title="Materiais" onPress={setActiveTab} />
             </View>
 
             <FlatList

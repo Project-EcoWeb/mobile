@@ -12,6 +12,6 @@ export async function getMaterialById(id: string, token: string) {
         }
         throw new Error('Erro ao buscar Material');
     } catch (error: any) {
-        throw new Error('Erro de conexão com Servidor ', error.message);
+        throw new Error(`Erro de conexão com o servidor: ${error.message}`);
     }
 }

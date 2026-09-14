@@ -10,7 +10,6 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { Colors } from "../../constants/Colors";

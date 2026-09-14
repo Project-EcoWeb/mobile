@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Stack, useRouter } from "expo-router";
+import { Stack, usePathname, useRouter } from "expo-router";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
 
@@ -14,16 +14,24 @@ export default function RootLayout() {
 function Layout() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (user === null) {
-        router.replace("/login");
-      } else {
-        router.replace("/dashboard");
-      }
+    if (isLoading) {
+      return;
     }
-  }, [user, isLoading, router]);
+
+    const isPublicRoute =
+      pathname === "/" || pathname === "/login" || pathname.startsWith("/auth/");
+
+    if (!user && !isPublicRoute) {
+      router.replace("/login");
+    }
+
+    if (user && isPublicRoute) {
+      router.replace("/dashboard");
+    }
+  }, [user, isLoading, router, pathname]);
 
   if (isLoading) {
     return (

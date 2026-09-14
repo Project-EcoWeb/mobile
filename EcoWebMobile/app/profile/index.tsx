@@ -56,19 +56,26 @@ const ProfileRow = ({ icon, title, onPress }: { icon: keyof typeof Ionicons.glyp
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
     const handleLogout = () => {
         Alert.alert(
             "Sair da Conta",
             "Você tem certeza que deseja sair?",
             [
                 { text: "Cancelar", style: "cancel" },
-                { text: "Sair", style: "destructive", onPress: () => router.replace('/') },
+                {
+                    text: "Sair",
+                    style: "destructive",
+                    onPress: async () => {
+                        await signOut();
+                        router.replace('/login');
+                    },
+                },
             ]
         );
     };
 
-    if (!user) return;
+    if (!user) return null;
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -90,7 +97,7 @@ export default function ProfileScreen() {
                     <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => alert('Funçaõ Indisponivel')}/>
                 </View>
 
-                {MOCK_USER.userType === 'company' && (
+                {user.userType === 'company' && (
                     <View style={styles.menuSection}>
                         <ProfileRow icon="business-outline" title="Gerenciar Resíduos" onPress={() => router.push('/material/me')} />
                     </View>

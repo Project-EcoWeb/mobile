@@ -13,10 +13,8 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { toast } from 'sonner';
 import { Colors } from '../../constants/Colors';
-import { imagesProjects } from '../../assets/images/image.js';
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from '../../context/AuthContext';
 import { getMeProjects } from "../../src/services/projectServices";
 
 interface UserProject {
@@ -63,27 +61,16 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
 
 export default function MyProjectsScreen() {
     const router = useRouter();
-    const [token, setToken] = useState<string | null>(null);
+    const { user } = useAuth();
     const [myProjects, setMyProjects] = useState<UserProject[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const loadToken = async () => {
-            const storedToken = await AsyncStorage.getItem('@ecoweb_token'); 
-            if (storedToken) {
-                setToken(storedToken);
-            } else {
-                setIsLoading(false);
-            }
-        };
-        loadToken();
-    }, []); 
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleAddNew = () => {
         router.push('/project/register');
     };
 
     const fetchProjects = useCallback(async () => {
+        const token = user?.token;
         if (!token) {
             return;
         }
@@ -103,19 +90,23 @@ export default function MyProjectsScreen() {
             setMyProjects(mappedProjects);
         } catch (error) {
             console.error("Erro detalhado ao buscar projetos:", error); 
-            toast.error("Falha ao buscar projetos", {
-                description: "Não foi possível carregar seus projetos. Tente novamente."
-            });
+            Alert.alert("Falha ao buscar projetos", "Não foi possível carregar seus projetos. Tente novamente.");
         } finally {
             setIsLoading(false);
         }
-    }, [token]);
+    }, [user?.token]);
 
     useEffect(() => {
-        if (token) {
-            fetchProjects();
+        if (!user?.token) {
+            return;
         }
-    }, [token, fetchProjects]);
+
+        const requestId = setTimeout(() => {
+            void fetchProjects();
+        }, 0);
+
+        return () => clearTimeout(requestId);
+    }, [user?.token, fetchProjects]);
 
     const handleDelete = (idToDelete: string) => {
         Alert.alert(
