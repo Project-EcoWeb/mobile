@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 import { useAuth } from "../../context/AuthContext";
 
 interface UserProfile {
@@ -79,8 +80,8 @@ export default function ProfileScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen options={{ headerShown: false }} />
             <StatusBar style="dark" />
+            <PageHeader title="Perfil" />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.profileHeader}>
                     <Image source={{ uri: MOCK_USER.avatarUrl }} style={styles.avatar} />

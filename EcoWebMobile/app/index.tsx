@@ -2,7 +2,6 @@ import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   FlatList,
   Image,
   SafeAreaView,
@@ -10,10 +9,9 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  useWindowDimensions,
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 const slides = [
   {
@@ -47,9 +45,11 @@ const viewConfig = { viewAreaCoveragePercentThreshold: 50 };
 const Paginator = ({
   currentIndex,
   scrollX,
+  width,
 }: {
   currentIndex: number;
   scrollX: Animated.Value;
+  width: number;
 }) => (
   <View style={styles.paginatorContainer}>
     {slides.map((_, index) => {
@@ -84,6 +84,7 @@ const Paginator = ({
 
 const Onboarding = () => {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scrollX] = useState(() => new Animated.Value(0));
   const slidesRef = useRef<FlatList>(null);
@@ -105,7 +106,7 @@ const Onboarding = () => {
   };
 
   const renderItem = ({ item }: { item: typeof slides[0] }) => (
-    <View style={[styles.slide, { backgroundColor: item.backgroundColor }]}>
+    <View style={[styles.slide, { width, backgroundColor: item.backgroundColor }]}>
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} resizeMode="cover" />
         <View style={styles.imageOverlay} />
@@ -135,6 +136,7 @@ const Onboarding = () => {
       </TouchableOpacity>
 
       <FlatList
+        style={styles.slidesList}
         data={slides}
         renderItem={renderItem}
         horizontal
@@ -152,7 +154,7 @@ const Onboarding = () => {
       />
 
       <View style={styles.bottomContainer}>
-        <Paginator currentIndex={currentIndex} scrollX={scrollX} />
+        <Paginator currentIndex={currentIndex} scrollX={scrollX} width={width} />
         
         <TouchableOpacity 
           style={[styles.button, { backgroundColor: slides[currentIndex].primaryColor }]} 
@@ -183,7 +185,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   slide: {
-    width,
+    flex: 1,
+  },
+  slidesList: {
     flex: 1,
   },
   imageContainer: {
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
     marginTop: 80,
   },
   image: {
-    width: width * 0.85,
+    width: '85%',
     height: '100%',
     alignSelf: 'center',
     borderRadius: 20,
@@ -200,8 +204,8 @@ const styles = StyleSheet.create({
   imageOverlay: {
     position: 'absolute',
     bottom: 0,
-    left: width * 0.075,
-    right: width * 0.075,
+    left: '7.5%',
+    right: '7.5%',
     height: 60,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 30,
-    minWidth: width * 0.7,
+    width: '70%',
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',

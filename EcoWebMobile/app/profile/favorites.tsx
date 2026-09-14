@@ -9,9 +9,10 @@ import {
   Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { imagesMaterials, imagesProjects } from '../../assets/images/image.js';
 interface FavoriteItem {
@@ -97,8 +98,8 @@ export default function FavoritesScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen options={{ title: 'Meus Favoritos' }} />
             <StatusBar style="dark" />
+            <PageHeader title="Meus Favoritos" />
 
             <View style={styles.tabsContainer}>
                 <FavoritesTab active={activeTab === 'projetos'} name="projetos" title="Projetos" onPress={setActiveTab} />

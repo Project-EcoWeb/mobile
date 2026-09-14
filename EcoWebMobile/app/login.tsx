@@ -19,8 +19,10 @@ import {
 import { EcoWebLogo } from "../components/logo";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,6 +30,15 @@ export default function LoginScreen() {
 
   const router = useRouter();
   const { signIn } = useAuth();
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/dashboard");
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,6 +90,15 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
+
+      <TouchableOpacity
+        accessibilityLabel="Voltar para explorar"
+        accessibilityRole="button"
+        onPress={handleBack}
+        style={[styles.backButton, { top: insets.top + 8 }]}
+      >
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
 
       <View style={styles.backgroundShapes}>
         <View style={[styles.shape, styles.shape1]} />
@@ -200,6 +220,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     height: "100%",
+  },
+  backButton: {
+    position: "absolute",
+    left: 16,
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   shape: {
     position: "absolute",

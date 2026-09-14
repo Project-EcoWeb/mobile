@@ -17,6 +17,7 @@ import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
 import { useAuthenticationGate } from '../hooks/useAuthenticationGate';
 import { imagesMaterials, imagesProjects } from '../assets/images/image.js';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface ProjectType {
   id: string;
@@ -385,7 +386,7 @@ export default function ExplorarScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="dark" />
       <SectionList
         sections={
@@ -404,8 +405,10 @@ export default function ExplorarScreen() {
           <View style={styles.header}>
             <View style={styles.topHeaderRow}>
               <View>
-                <Text style={styles.greeting}>Bem-vindo de volta,</Text>
-                <Text style={styles.username}>{user?.name || "User"}</Text>
+                <Text style={styles.greeting}>
+                  {user ? "Bem-vindo de volta," : "Bem-vindo à EcoWeb,"}
+                </Text>
+                <Text style={styles.username}>{user?.name || "Visitante"}</Text>
               </View>
               <TouchableOpacity
                 style={styles.messagesButton}
@@ -417,7 +420,7 @@ export default function ExplorarScreen() {
                   size={24}
                   color={Colors.primary}
                 />
-                <View style={styles.notificationBadge} />
+                {user && <View style={styles.notificationBadge} />}
               </TouchableOpacity>
             </View>
             <View style={styles.searchContainer}>
@@ -439,7 +442,7 @@ export default function ExplorarScreen() {
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -450,7 +453,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 20,
     backgroundColor: "#F8FAFB",
   },

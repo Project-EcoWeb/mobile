@@ -17,6 +17,7 @@ import {
 import { Colors } from "../../constants/Colors";
 import api from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CATEGORIES = [
   "Madeira",
@@ -29,6 +30,7 @@ const CATEGORIES = [
 
 export default function RegisterMaterialScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [materialName, setMaterialName] = useState("");
@@ -37,6 +39,15 @@ export default function RegisterMaterialScreen() {
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("");
   const [location, setLocation] = useState("");
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/material/me");
+  };
 
   const canRegister =
     imageUri && materialName && category && quantity && unit && location;
@@ -88,8 +99,12 @@ export default function RegisterMaterialScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <StatusBar style="dark" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          accessibilityLabel="Voltar para meus materiais"
+          accessibilityRole="button"
+          onPress={handleBack}
+        >
           <Ionicons name="close-outline" size={32} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Oferecer Material</Text>
@@ -202,7 +217,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 60,
     paddingBottom: 16,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,

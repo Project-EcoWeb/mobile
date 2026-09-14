@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState , useEffect } from "react";
 import {
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
+import { PageHeader } from "../../components/PageHeader";
 import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
 import api from "../../src/services/api"; 
 import { imagesMaterials } from "../../assets/images/image.js";
@@ -222,8 +223,8 @@ export default function BrowseMaterialsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="dark" />
+      <PageHeader title="Materiais" />
       <FlatList
         data={filteredMaterials}
         renderItem={({ item }) => (

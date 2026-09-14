@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 import { imagesMaterials } from '../../assets/images/image.js';
 
 interface CompanyMaterial {
@@ -97,15 +98,15 @@ export default function ManageMaterialsScreen() {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen options={{ 
-                title: 'Meus Materiais',
-                headerRight: () => (
+            <StatusBar style="dark" />
+            <PageHeader
+                title="Meus Materiais"
+                right={
                     <TouchableOpacity onPress={handleAddNew} style={styles.headerButton}>
                         <Ionicons name="add" size={28} color={Colors.primary} />
                     </TouchableOpacity>
-                )
-            }} />
-            <StatusBar style="dark" />
+                }
+            />
             <FlatList
                 data={materials}
                 renderItem={({ item }) => <ManagementCard item={item} onEdit={handleEdit} onDelete={handleDelete} />}

@@ -16,6 +16,8 @@ import { Colors } from '../../constants/Colors';
 import { useAuthenticationGate } from '../../hooks/useAuthenticationGate';
 import { imagesMaterials } from '../../assets/images/image.js';
 import { getMaterialById } from "../../src/services/materialService";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { PageHeader } from "../../components/PageHeader";
 
 interface CompanyType {
   id: string;
@@ -90,6 +92,7 @@ const Rating = ({ rating }: { rating: number }) => (
 
 export default function MaterialDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { navigateWithAuthentication, requireAuthentication } = useAuthenticationGate();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -98,6 +101,15 @@ export default function MaterialDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [isFavorited, setIsFavorited] = useState(false);
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/material");
+  };
 
   useEffect(() => {
     const loadMaterial = async () => {
@@ -179,25 +191,37 @@ export default function MaterialDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={{ marginTop: 10, color: Colors.grayText }}>Carregando material...</Text>
-      </View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <PageHeader title="Material" />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={{ marginTop: 10, color: Colors.grayText }}>Carregando material...</Text>
+        </View>
+      </SafeAreaView>
     ); 
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />
-        <Text style={{ marginTop: 10, fontSize: 16, color: Colors.grayText, textAlign: 'center' }}>{error}</Text>
-      </View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <PageHeader title="Material" />
+        <View style={styles.centerContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />
+          <Text style={{ marginTop: 10, fontSize: 16, color: Colors.grayText, textAlign: 'center' }}>{error}</Text>
+        </View>
+      </SafeAreaView>
     ); 
   }
 
   if (!material) {
     return (
-      <View style={styles.centerContainer}><Text>Material não encontrado!</Text></View>
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="dark" />
+        <PageHeader title="Material" />
+        <View style={styles.centerContainer}><Text>Material não encontrado!</Text></View>
+      </SafeAreaView>
     );
   }
 
@@ -206,7 +230,12 @@ export default function MaterialDetailScreen() {
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <Image source={{ uri: material.image }} style={styles.heroImage} />
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          accessibilityLabel="Voltar para materiais"
+          accessibilityRole="button"
+          style={[styles.backButton, { top: insets.top + 12 }]}
+          onPress={handleBack}
+        >
           <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
 
@@ -337,7 +366,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background, },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   heroImage: { width: '100%', height: 320, backgroundColor: Colors.neutral },
-  backButton: { position: 'absolute', top: 60, left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 20 },
+  backButton: { position: 'absolute', left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 20 },
   contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: Colors.background, marginTop: -20 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   categoryChip: {
