@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import {
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../constants/Colors";
+import { PageHeader } from "../../components/PageHeader";
 import { imagesPerfilMessages } from "../../assets/images/image";
 
 interface Conversation {
@@ -78,8 +79,8 @@ const ConversationRow = ({ item }: { item: Conversation }) => {
 export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen options={{ title: "Mensagens" }} />
       <StatusBar style="dark" />
+      <PageHeader title="Mensagens" />
       <FlatList
         data={MOCK_CONVERSATIONS}
         renderItem={({ item }) => <ConversationRow item={item} />}

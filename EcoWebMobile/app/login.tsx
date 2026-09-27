@@ -16,21 +16,29 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { EcoWebLogo } from "../components/logo";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [userType, setUserType] = useState<"creator" | "company">("creator");
-
   const router = useRouter();
   const { signIn } = useAuth();
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/dashboard");
+  };
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,9 +65,18 @@ export default function LoginScreen() {
 
       const { user, token } = response.data;
 
-      await AsyncStorage.setItem("@ecoweb_token", token);
+      const userType =
+        user.userType === "company" || user.type === "company" || user.role === "company"
+          ? "company"
+          : "creator";
 
-      signIn(userType, user.name, user.email, user.id, token);
+      await signIn({
+        id: user.id ?? user._id,
+        name: user.name,
+        email: user.email,
+        userType,
+        token,
+      });
     } catch (error: any) {
       const mensagem =
         error.response?.data?.message ||
@@ -73,6 +90,15 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
+
+      <TouchableOpacity
+        accessibilityLabel="Voltar para explorar"
+        accessibilityRole="button"
+        onPress={handleBack}
+        style={[styles.backButton, { top: insets.top + 8 }]}
+      >
+        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
 
       <View style={styles.backgroundShapes}>
         <View style={[styles.shape, styles.shape1]} />
@@ -97,24 +123,6 @@ export default function LoginScreen() {
           </View>
 
           <View style={styles.formContainer}>
-            <View style={styles.userTypeSelector}>
-              <TouchableOpacity
-                style={[
-                  styles.userTypeButton,
-                  userType === "creator" && styles.userTypeActive,
-                ]}
-                onPress={() => setUserType("creator")}
-              >
-                <Text
-                  style={[
-                    styles.userTypeText,
-                    userType === "creator" && styles.userTypeActiveText,
-                  ]}
-                >
-                  Sou Criador
-                </Text>
-              </TouchableOpacity>
-            </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
@@ -212,6 +220,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     height: "100%",
+  },
+  backButton: {
+    position: "absolute",
+    left: 16,
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   shape: {
     position: "absolute",

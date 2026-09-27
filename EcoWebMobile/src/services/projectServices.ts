@@ -11,18 +11,14 @@ export async function getMeProjects(token: string) {
             return response;
         }
         throw new Error('Erro ao buscar Projetos');
-    } catch (error) {
+    } catch {
         throw new Error('Erro de conexão com Servidor');
     }
 }
 
-export async function getProjectById(id: string, token: string) {
+export async function getProjectById(id: string) {
     try {
-        const response = await api.get(`/projects/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
+        const response = await api.get(`/projects/${id}`)
 
         if (response.status === 200) {
             return response;

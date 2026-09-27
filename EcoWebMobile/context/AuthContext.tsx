@@ -5,8 +5,12 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface User {
+const AUTH_TOKEN_KEY = "@ecoweb_token";
+const AUTH_USER_KEY = "@ecoweb_user";
+
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -17,14 +21,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  signIn: (
-    userType: "creator" | "company",
-    name: string,
-    email: string,
-    id: string,
-    token: string
-  ) => void;
-  signOut: () => void;
+  signIn: (user: User) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,34 +32,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const restoreSession = async () => {
+      try {
+        const [token, serializedUser] = await Promise.all([
+          AsyncStorage.getItem(AUTH_TOKEN_KEY),
+          AsyncStorage.getItem(AUTH_USER_KEY),
+        ]);
 
-    return () => clearTimeout(timer);
-  }, []);
+        if (!token || !serializedUser) {
+          if (token || serializedUser) {
+            await Promise.all([
+              AsyncStorage.removeItem(AUTH_TOKEN_KEY),
+              AsyncStorage.removeItem(AUTH_USER_KEY),
+            ]);
+          }
+          return;
+        }
 
-  const signIn = (
-    userType: "creator" | "company",
-    name: string,
-    email: string,
-    id: string,
-    token: string
-  ) => {
-    const authenticatedUser: User = {
-      id,
-      name,
-      email,
-      userType,
-      token,
+        const storedUser = JSON.parse(serializedUser) as Omit<User, "token">;
+        if (!storedUser.id || !storedUser.name || !storedUser.email) {
+          throw new Error("Dados de sessão inválidos.");
+        }
+
+        setUser({ ...storedUser, token });
+      } catch {
+        await Promise.all([
+          AsyncStorage.removeItem(AUTH_TOKEN_KEY),
+          AsyncStorage.removeItem(AUTH_USER_KEY),
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setUser(authenticatedUser);
+    void restoreSession();
+  }, []);
 
+  const signIn = async (authenticatedUser: User) => {
+    const { token, ...userToPersist } = authenticatedUser;
+    await Promise.all([
+      AsyncStorage.setItem(AUTH_TOKEN_KEY, token),
+      AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(userToPersist)),
+    ]);
+    setUser(authenticatedUser);
   };
 
-  const signOut = () => {
-    setUser(null);
+  const signOut = async () => {
+    try {
+      await Promise.all([
+        AsyncStorage.removeItem(AUTH_TOKEN_KEY),
+        AsyncStorage.removeItem(AUTH_USER_KEY),
+      ]);
+    } finally {
+      setUser(null);
+    }
   };
 
   return (

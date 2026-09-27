@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 
 const CURRENT_USER_ID = 'me';
 
@@ -62,9 +63,9 @@ export default function ChatScreen() {
     };
     
     return (
-        <SafeAreaView style={styles.container} edges={['bottom']}>
-             <Stack.Screen options={{ title: 'Madeireira Verde' }} />
-             <StatusBar style="dark" />
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+            <StatusBar style="dark" />
+            <PageHeader title="Madeireira Verde" />
             <KeyboardAvoidingView 
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

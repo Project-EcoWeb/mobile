@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { PageHeader } from '../../components/PageHeader';
 import { useAuth } from "../../context/AuthContext";
 
 interface UserProfile {
@@ -56,24 +57,31 @@ const ProfileRow = ({ icon, title, onPress }: { icon: keyof typeof Ionicons.glyp
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
     const handleLogout = () => {
         Alert.alert(
             "Sair da Conta",
             "Você tem certeza que deseja sair?",
             [
                 { text: "Cancelar", style: "cancel" },
-                { text: "Sair", style: "destructive", onPress: () => router.replace('/') },
+                {
+                    text: "Sair",
+                    style: "destructive",
+                    onPress: async () => {
+                        await signOut();
+                        router.replace('/login');
+                    },
+                },
             ]
         );
     };
 
-    if (!user) return;
+    if (!user) return null;
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Stack.Screen options={{ headerShown: false }} />
             <StatusBar style="dark" />
+            <PageHeader title="Perfil" />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.profileHeader}>
                     <Image source={{ uri: MOCK_USER.avatarUrl }} style={styles.avatar} />
@@ -90,7 +98,7 @@ export default function ProfileScreen() {
                     <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => alert('Funçaõ Indisponivel')}/>
                 </View>
 
-                {MOCK_USER.userType === 'company' && (
+                {user.userType === 'company' && (
                     <View style={styles.menuSection}>
                         <ProfileRow icon="business-outline" title="Gerenciar Resíduos" onPress={() => router.push('/material/me')} />
                     </View>

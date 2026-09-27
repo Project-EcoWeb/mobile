@@ -17,11 +17,13 @@ import {
 import { Colors } from "../../constants/Colors";
 import api from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CATEGORIES = ["Móveis", "Decoração", "Jardim", "Moda", "Brinquedos"];
 
 export default function CreateProjectScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -33,6 +35,15 @@ export default function CreateProjectScreen() {
   const [difficulty, setDifficulty] = useState<
     "Facil" | "Medio" | "Dificil" | ""
   >("");
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace("/project/me");
+  };
 
   const handlePublish = async () => {
     if (!title || !imageUri || !category) {
@@ -107,7 +118,15 @@ export default function CreateProjectScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
     >
       <StatusBar style="dark" />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity
+          accessibilityLabel="Voltar"
+          accessibilityRole="button"
+          onPress={handleBack}
+          style={styles.headerBackButton}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Novo Projeto</Text>
         <TouchableOpacity
           style={[
@@ -268,17 +287,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 20,
     paddingBottom: 16,
     backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.neutral,
   },
   headerTitle: {
+    flex: 1,
+    marginLeft: 8,
     fontSize: 18,
     fontWeight: "bold",
     color: Colors.text,
     textAlign: "center",
+  },
+  headerBackButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
   publishButton: {
     backgroundColor: Colors.primary,
