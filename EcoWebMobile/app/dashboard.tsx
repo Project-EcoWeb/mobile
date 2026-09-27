@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   SectionList,
@@ -16,8 +17,11 @@ import {
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
 import { useAuthenticationGate } from '../hooks/useAuthenticationGate';
-import { imagesMaterials, imagesProjects } from '../assets/images/image.js';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  getHomeContent,
+  getPublicContentError,
+} from '../src/services/publicContentService';
 
 interface ProjectType {
   id: string;
@@ -42,30 +46,17 @@ interface QuickLinkType {
   route: string;
 }
 
-const sectionsData: AppSection[] = [
+const createSectionsData = (
+  projects: ProjectType[],
+  materials: MaterialType[]
+): AppSection[] => [
   {
     title: "Projetos",
     type: "featured",
     data: [
       {
         id: "featured-items",
-        items: [
-          {
-            id: "p1",
-            titulo: "Cadeira com Paletes",
-            imagem: imagesProjects.cadeira,
-          },
-          {
-            id: "p2",
-            titulo: "Vasos com Garrafa PET",
-            imagem: imagesProjects.vaso,
-          },
-          {
-            id: "p3",
-            titulo: "Bolsa de Retalhos",
-            imagem: imagesProjects.bolsa,
-          },
-        ],
+        items: projects,
       },
     ],
   },
@@ -87,20 +78,7 @@ const sectionsData: AppSection[] = [
   {
     title: "Materiais Chegando Agora",
     type: "material_list",
-    data: [
-      {
-        id: "m1",
-        nome: "Paletes de madeira",
-        local: "Madeireira Verde",
-        imagem: imagesMaterials.paletes,
-      },
-      {
-        id: "m2",
-        nome: "Garrafas de Vidro",
-        local: "Restaurante Sabor",
-        imagem: imagesMaterials.garrafas,
-      },
-    ],
+    data: materials,
   },
   {
     title: "Sua Jornada Criativa",
@@ -177,8 +155,8 @@ type AppSection =
   | QuickLinksSection;
 
 
-const CategoryCard = ({ item }: { item: CategoryType }) => (
-  <TouchableOpacity style={styles.categoryCard} activeOpacity={0.7}>
+const CategoryCard = ({ item, onPress }: { item: CategoryType; onPress: () => void }) => (
+  <TouchableOpacity style={styles.categoryCard} activeOpacity={0.7} onPress={onPress}>
     <View style={styles.categoryIconContainer}>
       <Ionicons name={item.icon} size={32} color={Colors.primary} />
     </View>
@@ -213,7 +191,7 @@ const FeaturedCard = ({ item, router }: { item: ProjectType; router: any }) => (
     onPress={() => router.push(`/project/${item.id}`)}
     activeOpacity={0.9}
   >
-    <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} />
+    <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} resizeMode="cover" />
     <View style={styles.featuredCardGradient} />
     <View style={styles.featuredCardContent}>
       <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
@@ -230,7 +208,13 @@ const MaterialRow = ({ item, router }: { item: MaterialType; router: any }) => (
     onPress={() => router.push(`/material/${item.id}`)}
     activeOpacity={0.7}
   >
-    <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
+    {item.imagem ? (
+      <Image source={{ uri: item.imagem }} style={styles.materialRowImage} />
+    ) : (
+      <View style={[styles.materialRowImage, styles.materialImagePlaceholder]}>
+        <Ionicons name="cube-outline" size={28} color={Colors.primary} />
+      </View>
+    )}
     <View style={styles.materialRowContent}>
       <Text style={styles.materialRowTitle}>{item.nome}</Text>
       <View style={styles.materialRowLocationContainer}>
@@ -248,10 +232,47 @@ export default function ExplorarScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { isAuthenticated, navigateWithAuthentication } = useAuthenticationGate();
+  const [projects, setProjects] = useState<ProjectType[]>([]);
+  const [materials, setMaterials] = useState<MaterialType[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadHome = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const content = await getHomeContent();
+      setProjects(content.projects.map((project) => ({
+        id: project._id,
+        titulo: project.title,
+        imagem: project.image,
+      })));
+      setMaterials(content.materials.map((material) => ({
+        id: material._id,
+        nome: material.name,
+        local: material.location,
+        imagem: material.image ?? "",
+      })));
+    } catch (loadError) {
+      setError(getPublicContentError(loadError, "Não foi possível carregar os destaques."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- inicia a consulta pública ao montar a tela.
+  useEffect(() => { void loadHome(); }, [loadHome]);
+
+  const submitSearch = () => {
+    const query = searchQuery.trim();
+    if (query) {
+      router.push({ pathname: "/search", params: { query } } as never);
+    }
+  };
 
   const adaptedSectionsData = React.useMemo(() => {
-
-    const sections = JSON.parse(JSON.stringify(sectionsData)) as AppSection[];
+    const sections = createSectionsData(projects, materials);
     const quickLinksSection = sections.find((s) => s.type === "quick_links") as
       | QuickLinksSection
       | undefined;
@@ -279,7 +300,7 @@ export default function ExplorarScreen() {
     }
 
     return sections;
-  }, [user?.userType]);
+  }, [materials, projects, user?.userType]);
 
   const renderItem = ({
     item,
@@ -312,7 +333,12 @@ export default function ExplorarScreen() {
             horizontal
             data={categoriesWrapper.items}
             keyExtractor={(i) => i.id}
-            renderItem={({ item }) => <CategoryCard item={item} />}
+            renderItem={({ item }) => (
+              <CategoryCard
+                item={item}
+                onPress={() => router.push({ pathname: "/project", params: { category: item.name } })}
+              />
+            )}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.flatListContentContainer}
           />
@@ -434,11 +460,29 @@ export default function ExplorarScreen() {
                 style={styles.searchInput}
                 placeholder="Buscar projetos, materiais..."
                 placeholderTextColor={Colors.grayText}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={submitSearch}
+                returnKeyType="search"
               />
-              <TouchableOpacity style={styles.filterButton} activeOpacity={0.7}>
-                <Ionicons name="options-outline" size={20} color={Colors.primary} />
+              <TouchableOpacity style={styles.filterButton} activeOpacity={0.7} onPress={submitSearch}>
+                <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
               </TouchableOpacity>
             </View>
+            {isLoading && (
+              <View style={styles.homeStatus}>
+                <ActivityIndicator color={Colors.primary} />
+                <Text style={styles.homeStatusText}>Carregando destaques...</Text>
+              </View>
+            )}
+            {error && (
+              <View style={styles.homeStatus}>
+                <Text style={styles.homeStatusText}>{error}</Text>
+                <TouchableOpacity onPress={loadHome}>
+                  <Text style={styles.retryText}>Tentar novamente</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         }
       />
@@ -530,6 +574,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginLeft: 8,
   },
+  homeStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 14,
+    paddingHorizontal: 4,
+  },
+  homeStatusText: {
+    flex: 1,
+    color: Colors.grayText,
+    fontSize: 14,
+  },
+  retryText: {
+    color: Colors.primary,
+    fontWeight: "700",
+  },
   sectionHeaderContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -578,7 +638,6 @@ const styles = StyleSheet.create({
   featuredCardImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   featuredCardGradient: {
     ...StyleSheet.absoluteFill,
@@ -632,6 +691,10 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 16,
     backgroundColor: "#F0F4F8",
+  },
+  materialImagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
   },
   materialRowContent: {
     flex: 1,

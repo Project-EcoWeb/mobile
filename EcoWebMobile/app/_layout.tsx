@@ -23,7 +23,7 @@ function Layout() {
     }
 
     if (!user && isProtectedRoute(pathname)) {
-      router.replace("/login");
+      router.replace({ pathname: "/login", params: { redirect: pathname } });
     }
 
     if (user && (pathname === "/" || isAuthenticationRoute(pathname))) {
