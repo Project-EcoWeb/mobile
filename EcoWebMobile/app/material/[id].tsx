@@ -1,470 +1,153 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Alert
-} from 'react-native';
-import { Colors } from '../../constants/Colors';
-import { useAuthenticationGate } from '../../hooks/useAuthenticationGate';
-import { imagesMaterials } from '../../assets/images/image.js';
-import { getMaterialById } from "../../src/services/materialService";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PageHeader } from "../../components/PageHeader";
+import { Colors } from "../../constants/Colors";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { getInstitution, getPublicContentError, getPublicMaterial, PublicMaterial } from "../../src/services/publicContentService";
 
-interface CompanyType {
-  id: string;
-  name: string;
-  logo?: string;
-  phone: string;
-  location: string; 
-  responsibleName?: string;
-  pickupHours?: string;
-  pickupInstructions?: string;  
-  isVerified?: boolean;
-}
-
-interface MaterialType {
-  id: string;
-  name: string;
-  image: string;
-  description: string;
-  location: string;
-  quantity: string;
-  instructions: string;
-  category: string;
-  company: CompanyType; 
-  rating: number;
-}
-
-const MOCK_COMPANY: CompanyType = {
-  id: "c1",
-  name: "Instituto Federal de Roraima (IFRR)",
-  logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNjd9KvVovzXePlPVdH90Gs0ZM2XS66QjiWQ&s",
-  phone: "(95) 3621-1900",
-  location: "Av. Glaycon de Paiva, 2496 - Pricumã, Boa Vista - RR",
-  responsibleName: "Prof. George (TADS)",
-  pickupHours: "Segunda a Sexta, 08h-12h e 14h-18h",
-  pickupInstructions: "Procurar na Coordenação de Análise de Sistemas.",
-  isVerified: true
-};
-
-
-const MOCK_MATERIALS: MaterialType[] = [
-  { id: "m1", name: "Paletes de Pinho", image: imagesMaterials.paletes, description: "Em bom estado, ideal para móveis e projetos DIY.", location: "Boa Vista, RR - Bloco B", quantity: "15", category: "Madeira", rating: 4.8, company: MOCK_COMPANY, instructions: "Procurar na Coordenação de Análise de Sistemas." },
-  { id: "m2", name: "Garrafas de Vidro Verdes", image: imagesMaterials.garrafas, description: "Limpos e sem rótulo, perfeitos para artesanato.", location: "Boa Vista, RR - Cantina", quantity: "5", category: "Vidro", rating: 4.5, company: MOCK_COMPANY, instructions: "Procurar na Coordenação de Análise de Sistemas." },
-  { id: "m3", name: "Retalhos de Algodão Colorido", image: imagesMaterials.retalhos, description: "Diversas cores e tamanhos para projetos criativos.", location: "Boa Vista, RR - Sala de Artes", quantity: "5", category: "Tecido", rating: 4.2, company: { ...MOCK_COMPANY, isVerified: false }, instructions: "Procurar na Coordenação de Análise de Sistemas." },
-  { id: 'm4', name: 'Sobras de Canos de PVC', image: imagesMaterials.canos, description: 'Diversos diâmetros.', location: 'Boa Vista, RR - Almoxarifado', quantity: '20', category: 'Plástico', rating: 3.2, company: MOCK_COMPANY, instructions: "Procurar na Coordenação de Análise de Sistemas." },
-  { id: 'm5', name: 'Latas de Alumínio', image: imagesMaterials.latas, description: 'Amassadas para reciclagem.', location: 'Boa Vista, RR - Refeitório', quantity: '3', category: 'Metal', rating: 5.0, company: { ...MOCK_COMPANY, isVerified: false }, instructions: "Procurar na Coordenação de Análise de Sistemas." },
-];
-
-const InfoBlock = ({ icon, label, value, onPress }: { icon: keyof typeof Ionicons.glyphMap, label: string, value: string, onPress?: () => void }) => (
-  <TouchableOpacity onPress={onPress} disabled={!onPress} style={styles.infoBlock}>
+const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) => (
+  <View style={styles.infoBlock}>
     <Ionicons name={icon} size={24} color={Colors.primary} />
-    <View style={{ marginLeft: 12, flex: 1 }}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={[styles.infoValue, onPress ? styles.linkValue : null]}>{value}</Text>
-    </View>
-    {onPress && <Ionicons name="open-outline" size={18} color={Colors.primary} />}
-  </TouchableOpacity>
-);
-
-const Rating = ({ rating }: { rating: number }) => (
-  <View style={styles.ratingContainer}>
-    <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
-    {[1, 2, 3, 4, 5].map((star) => (
-      <Ionicons
-        key={star}
-        name={rating >= star ? 'star' : rating >= star - 0.5 ? 'star-half' : 'star-outline'}
-        size={18}
-        color="#FFC107"
-      />
-    ))}
+    <View style={styles.infoTextContainer}><Text style={styles.infoLabel}>{label}</Text><Text style={styles.infoValue}>{value}</Text></View>
   </View>
 );
 
 export default function MaterialDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { navigateWithAuthentication, requireAuthentication } = useAuthenticationGate();
   const { id } = useLocalSearchParams<{ id: string }>();
-
-  const [material, setMaterial] = useState<MaterialType | null>(null);
+  const { isAuthenticated, navigateWithAuthentication, requireAuthentication } = useAuthenticationGate();
+  const [material, setMaterial] = useState<PublicMaterial | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [isFavorited, setIsFavorited] = useState(false);
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
+  const handleBack = () => router.canGoBack() ? router.back() : router.replace("/material");
+
+  const loadMaterial = useCallback(async () => {
+    if (!id) {
+      setError("Material não encontrado.");
+      setIsLoading(false);
       return;
     }
-
-    router.replace("/material");
-  };
-
-  useEffect(() => {
-    const loadMaterial = async () => {
-      if (!id) {
-        setError("ID do material não fornecido.");
-        setIsLoading(false);
-        return;
-      }
-
+    try {
       setIsLoading(true);
       setError(null);
-      setMaterial(null);
-
-      const mockMaterial = MOCK_MATERIALS.find(m => m.id === id);
-      if (mockMaterial) {
-        setMaterial(mockMaterial);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await getMaterialById(id);
-        const apiData = response.data;
-
-        const normalizedMaterial: MaterialType = {
-          id: apiData._id,
-          name: apiData.name,
-          image: apiData.image || (apiData.fotos ? apiData.fotos[0] : ''),
-          description: apiData.description,
-          location: apiData.location,
-          quantity: `${apiData.quantity} ${apiData.unitOfMeasure}`,
-          category: apiData.category,
-          instructions: apiData.instructions || "Buscar com pessoa de contato",
-          company: { 
-            id: apiData.company._id,
-            name: apiData.company.name,
-            logo: apiData.company.logo,
-            phone: apiData.company.phone,
-            location: apiData.company.location, 
-            responsibleName: apiData.company.responsibleName,
-            pickupHours: apiData.company.pickupHours || "Segunda a Sexta, 08h-12h e 14h-18h",
-            isVerified: apiData.company.isVerified || false, 
-          },
-          rating: apiData.rating || 4.0,
-        };
-
-        setMaterial(normalizedMaterial);
-
-      } catch (err: any) {
-        console.error("Falha ao buscar material:", err);
-        setError("Não foi possível carregar este material.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadMaterial();
+      setMaterial(await getPublicMaterial(id));
+    } catch (loadError) {
+      setError(getPublicContentError(loadError, "Não foi possível carregar este material."));
+    } finally {
+      setIsLoading(false);
+    }
   }, [id]);
 
-  const onShare = async () => {
-    Alert.alert('Função indisponivel')
-   };
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- inicia a consulta pública ao montar a tela.
+  useEffect(() => { void loadMaterial(); }, [loadMaterial]);
 
-  const toggleFavorite = () => {
-    if (!requireAuthentication()) {
-      return;
-    }
-
-    setIsFavorited((value) => !value);
-  };
-
-  const openMaps = (address: string) => {
-    Alert.alert('Função indisponivel')
-  };
-
-  const openPhone = (phoneNumber: string) => {
-    Alert.alert('Função indisponivel')
-  };
-
-  if (isLoading) {
+  if (isLoading || error || !material) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <StatusBar style="dark" />
         <PageHeader title="Material" />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={{ marginTop: 10, color: Colors.grayText }}>Carregando material...</Text>
+          {isLoading ? <ActivityIndicator size="large" color={Colors.primary} /> : <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />}
+          <Text style={styles.stateText}>{isLoading ? "Carregando material..." : error ?? "Material não encontrado."}</Text>
+          {!isLoading && <TouchableOpacity style={styles.retryButton} onPress={loadMaterial}><Text style={styles.retryText}>Tentar novamente</Text></TouchableOpacity>}
         </View>
-      </SafeAreaView>
-    ); 
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <StatusBar style="dark" />
-        <PageHeader title="Material" />
-        <View style={styles.centerContainer}>
-          <Ionicons name="alert-circle-outline" size={60} color={Colors.grayText} />
-          <Text style={{ marginTop: 10, fontSize: 16, color: Colors.grayText, textAlign: 'center' }}>{error}</Text>
-        </View>
-      </SafeAreaView>
-    ); 
-  }
-
-  if (!material) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <StatusBar style="dark" />
-        <PageHeader title="Material" />
-        <View style={styles.centerContainer}><Text>Material não encontrado!</Text></View>
       </SafeAreaView>
     );
   }
 
+  const institution = getInstitution(material);
+  const toggleFavorite = () => {
+    if (requireAuthentication()) setIsFavorited((value) => !value);
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Image source={{ uri: material.image }} style={styles.heroImage} />
-        <TouchableOpacity
-          accessibilityLabel="Voltar para materiais"
-          accessibilityRole="button"
-          style={[styles.backButton, { top: insets.top + 12 }]}
-          onPress={handleBack}
-        >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {material.image ? (
+          <Image source={{ uri: material.image }} style={styles.heroImage} />
+        ) : (
+          <View style={[styles.heroImage, styles.heroPlaceholder]}><Ionicons name="cube-outline" size={64} color={Colors.primary} /></View>
+        )}
+        <TouchableOpacity accessibilityLabel="Voltar para materiais" accessibilityRole="button" style={[styles.backButton, { top: insets.top + 12 }]} onPress={handleBack}>
           <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
-
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
-            <View style={styles.categoryChip}>
-              <Text style={styles.categoryChipText}>{material.category}</Text>
-            </View>
-            <View style={styles.actionsRow}>
-              <TouchableOpacity onPress={toggleFavorite}>
-                <Ionicons name={isFavorited ? "heart" : "heart-outline"} size={28} color={isFavorited ? '#0D4D44' : Colors.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onShare}>
-                <Ionicons name="share-social-outline" size={28} color={Colors.primary} />
-              </TouchableOpacity>
-            </View>
+            <View style={styles.categoryChip}><Text style={styles.categoryChipText}>{material.category}</Text></View>
+            <TouchableOpacity onPress={toggleFavorite} accessibilityLabel={isAuthenticated ? "Favoritar material" : "Entrar para favoritar"}>
+              <Ionicons name={isFavorited ? "heart" : isAuthenticated ? "heart-outline" : "lock-closed-outline"} size={28} color={Colors.primary} />
+            </TouchableOpacity>
           </View>
-
           <Text style={styles.title}>{material.name}</Text>
-          <Rating rating={material.rating} />
-
           <Text style={styles.sectionTitle}>Logística e Quantidade</Text>
           <View style={styles.infoContainer}>
-            <InfoBlock
-              icon="location-outline"
-              label="Local de Retirada"
-              value={material.location}
-              onPress={() => openMaps(material.company.location)}
-            />
-            <InfoBlock
-              icon="cube-outline"
-              label="Quantidade"
-              value={material.quantity}
-            />
+            <InfoBlock icon="location-outline" label="Local de retirada" value={material.location} />
+            <InfoBlock icon="cube-outline" label="Quantidade" value={`${material.quantity} ${material.unitOfMeasure}`} />
           </View>
-
-          <View style={styles.additionalInfoContainer}>
-            {material.company.pickupHours && (
-              <InfoBlock
-                icon="time-outline"
-                label="Horário para Retirada"
-                value={material.company.pickupHours}
-              />
-            )}
-            {material.company.pickupInstructions && (
-              <InfoBlock
-                icon="information-circle-outline"
-                label="Instruções de Retirada"
-                value={material.instructions}
-              />
-            )}
-          </View>
-
+          {material.instructions && <View style={styles.additionalInfoContainer}><InfoBlock icon="information-circle-outline" label="Instruções de retirada" value={material.instructions} /></View>}
           <Text style={styles.sectionTitle}>Sobre o Material</Text>
           <Text style={styles.description}>{material.description}</Text>
-
-          <Text style={styles.sectionTitle}>Sobre o Doador</Text>
-
-          <View style={styles.companyHeader}>
-            {material.company.logo ? (
-              <Image source={{ uri: material.company.logo }} style={styles.companyLogo} />
-            ) : (
-              <View style={[styles.companyLogo, styles.logoPlaceholder]}>
-                <Ionicons name="business" size={30} color={Colors.primary} />
+          {institution && (
+            <>
+              <Text style={styles.sectionTitle}>Sobre o Doador</Text>
+              <View style={styles.companyHeader}>
+                {institution.logo ? <Image source={{ uri: institution.logo }} style={styles.companyLogo} /> : <View style={[styles.companyLogo, styles.logoPlaceholder]}><Ionicons name="business" size={30} color={Colors.primary} /></View>}
+                <View style={styles.companyText}><Text style={styles.companyName}>{institution.name}</Text><Text style={styles.companyLocation}>{institution.location}</Text></View>
               </View>
-            )}
-
-            <View style={{ flex: 1 }}>
-              <Text style={styles.companyName}>{material.company.name}</Text>
-              {material.company.isVerified && (
-                <View style={styles.verifiedBadge}>
-                  <Ionicons name="checkmark-circle" size={16} color={Colors.white} />
-                  <Text style={styles.verifiedText}>Doador Verificado</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.additionalInfoContainer}>
-            {material.company.location && (
-              <InfoBlock
-                icon="location-outline"
-                label="Endereço"
-                value={material.company.location}
-                onPress={() => openMaps(material.company.location)}
-              />
-            )}
-            {material.company.responsibleName && (
-              <InfoBlock
-                icon="person-outline"
-                label="Pessoa de Contato"
-                value={material.company.responsibleName}
-              />
-            )}
-            {material.company.phone && (
-              <InfoBlock
-                icon="call-outline"
-                label="Telefone"
-                value={material.company.phone}
-                onPress={() => openPhone(material.company.phone)}
-              />
-            )}
-          </View>
-
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => Alert.alert("Função indisponivel")}
-          >
-            <Text style={styles.linkButtonText}>Ver todos os materiais deste doador</Text>
-            <Ionicons name="arrow-forward" size={18} color={Colors.primary} />
-          </TouchableOpacity>
-
+              <TouchableOpacity style={styles.linkButton} onPress={() => router.push(`/institution/${institution._id}` as never)}>
+                <Text style={styles.linkButtonText}>Ver materiais deste doador</Text><Ionicons name="arrow-forward" size={18} color={Colors.primary} />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
-
-      <TouchableOpacity
-        style={styles.ctaButton}
-        onPress={() => navigateWithAuthentication(`/chat/${material.id}`)}
-      >
-        <Ionicons name="chatbubble-ellipses-outline" size={22} color={Colors.white} />
-        <Text style={styles.ctaButtonText}>Tenho Interesse</Text>
+      <TouchableOpacity style={styles.ctaButton} onPress={() => navigateWithAuthentication(`/chat/${material._id}`)}>
+        <Ionicons name={isAuthenticated ? "chatbubble-ellipses-outline" : "lock-closed-outline"} size={22} color={Colors.white} />
+        <Text style={styles.ctaButtonText}>{isAuthenticated ? "Tenho interesse" : "Entrar para demonstrar interesse"}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background, },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  heroImage: { width: '100%', height: 320, backgroundColor: Colors.neutral },
-  backButton: { position: 'absolute', left: 20, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 20 },
+  container: { flex: 1, backgroundColor: Colors.background },
+  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 28 },
+  stateText: { marginTop: 12, color: Colors.grayText, textAlign: "center", fontSize: 16 },
+  retryButton: { marginTop: 18, paddingHorizontal: 20, paddingVertical: 12, backgroundColor: Colors.primary, borderRadius: 12 },
+  retryText: { color: Colors.white, fontWeight: "700" },
+  scrollContent: { paddingBottom: 120 },
+  heroImage: { width: "100%", height: 320, backgroundColor: Colors.neutral },
+  heroPlaceholder: { alignItems: "center", justifyContent: "center" },
+  backButton: { position: "absolute", left: 20, backgroundColor: "rgba(0,0,0,0.5)", padding: 10, borderRadius: 22 },
   contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: Colors.background, marginTop: -20 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  categoryChip: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  categoryChipText: {
-    color: Colors.primary,
-    fontWeight: 'bold',
-    fontSize: 13
-  },
-  actionsRow: { flexDirection: 'row', gap: 15 },
-  title: { fontSize: 28, fontWeight: 'bold', color: Colors.text, marginTop: 12 },
-  ratingContainer: { flexDirection: 'row', alignItems: 'center', gap: 4, marginVertical: 12 },
-  ratingText: { fontSize: 16, fontWeight: 'bold', color: Colors.text, marginRight: 6 },
-  infoContainer: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  infoBlock: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: 14, 
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.neutral,
-    minWidth: '48%',
-  },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  categoryChip: { backgroundColor: Colors.accent, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  categoryChipText: { color: Colors.primary, fontWeight: "bold", fontSize: 13 },
+  title: { fontSize: 28, fontWeight: "bold", color: Colors.text, marginTop: 12 },
+  sectionTitle: { fontSize: 20, fontWeight: "700", color: Colors.text, marginTop: 22, marginBottom: 12 },
+  infoContainer: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  infoBlock: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral },
+  infoTextContainer: { marginLeft: 10, flex: 1 },
   infoLabel: { fontSize: 12, color: Colors.grayText },
-  infoValue: { fontSize: 15, fontWeight: '600', color: Colors.text, marginTop: 2 },
-  linkValue: { color: Colors.primary, textDecorationLine: 'underline' },
-  sectionTitle: { fontSize: 20, fontWeight: '700', color: Colors.text, marginTop: 16, marginBottom: 12 },
-  description: { fontSize: 16, color: Colors.text, lineHeight: 25, marginBottom: 16 },
-  ctaButton: { position: 'absolute', bottom: 30, left: 20, right: 20, backgroundColor: Colors.primary, padding: 18, borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', elevation: 8, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8 },
-  ctaButtonText: { color: Colors.white, fontSize: 17, fontWeight: 'bold', marginLeft: 10, },
-
-  additionalInfoContainer: {
-    gap: 12,
-    marginBottom: 16,
-  },
-  companyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
-    marginBottom: 16,
-    backgroundColor: Colors.white,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.neutral,
-  },
-  companyLogo: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: Colors.neutral,
-  },
-  logoPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  companyName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.text,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginTop: 6,
-  },
-  verifiedText: {
-    color: Colors.white,
-    fontWeight: 'bold',
-    marginLeft: 5,
-    fontSize: 12,
-  },
-  linkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.neutral,
-    backgroundColor: Colors.white,
-    marginTop: 8,
-  },
-  linkButtonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  }
+  infoValue: { fontSize: 15, fontWeight: "600", color: Colors.text, marginTop: 2 },
+  additionalInfoContainer: { marginBottom: 6 },
+  description: { fontSize: 16, color: Colors.text, lineHeight: 25, marginBottom: 8 },
+  companyHeader: { flexDirection: "row", alignItems: "center", gap: 15, backgroundColor: Colors.white, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral },
+  companyLogo: { width: 60, height: 60, borderRadius: 12, backgroundColor: Colors.neutral },
+  logoPlaceholder: { justifyContent: "center", alignItems: "center" },
+  companyText: { flex: 1 },
+  companyName: { fontSize: 18, fontWeight: "bold", color: Colors.text },
+  companyLocation: { color: Colors.grayText, marginTop: 4, lineHeight: 19 },
+  linkButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral, backgroundColor: Colors.white, marginTop: 12 },
+  linkButtonText: { color: Colors.primary, fontSize: 16, fontWeight: "bold" },
+  ctaButton: { position: "absolute", bottom: 30, left: 20, right: 20, backgroundColor: Colors.primary, padding: 18, borderRadius: 18, alignItems: "center", justifyContent: "center", flexDirection: "row", elevation: 8, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 8 },
+  ctaButtonText: { color: Colors.white, fontSize: 16, fontWeight: "bold", marginLeft: 10 },
 });
