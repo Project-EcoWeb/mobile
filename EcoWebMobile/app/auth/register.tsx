@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
@@ -32,6 +32,7 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>();
 
   const handleBack = () => {
     if (router.canGoBack()) {
@@ -39,7 +40,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    router.replace('/login');
+    router.replace({ pathname: '/login', params: redirect ? { redirect } : {} });
   };
 
   const validateEmail = (email: string) => {
@@ -87,7 +88,7 @@ const handleCadastro = async () => {
     });
 
     Alert.alert('Sucesso', 'Conta criada com sucesso!');
-    router.replace('/login');
+    router.replace({ pathname: '/login', params: redirect ? { redirect } : {} });
   } catch (error: any) {
     console.error(error.response?.data || error.message);
     Alert.alert('Erro', 'Não foi possível cadastrar. Verifique os dados ou tente mais tarde.');
@@ -268,7 +269,7 @@ const handleCadastro = async () => {
 
               <View style={styles.loginSection}>
                 <Text style={styles.loginText}>Já tem uma conta? </Text>
-                <Pressable onPress={() => router.push('/login')}>
+                <Pressable onPress={() => router.push({ pathname: '/login', params: redirect ? { redirect } : {} })}>
                   <Text style={styles.loginLink}>Fazer login</Text>
                 </Pressable>
               </View>
