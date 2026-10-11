@@ -2,7 +2,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../../components/ContentImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PageHeader } from "../../components/PageHeader";
 import { Colors } from "../../constants/Colors";
@@ -16,7 +17,11 @@ export default function InstitutionProfileScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      setError("Doador não encontrado.");
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
@@ -32,7 +37,7 @@ export default function InstitutionProfileScreen() {
   useEffect(() => { void loadProfile(); }, [loadProfile]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <PageHeader title="Doador" />
       {isLoading || error || !profile ? (
@@ -84,7 +89,7 @@ const styles = StyleSheet.create({
   sectionTitle: { width: "100%", marginTop: 28, marginBottom: 14, fontSize: 20, fontWeight: "700", color: Colors.text },
   card: { flexDirection: "row", alignItems: "center", padding: 12, marginBottom: 12, backgroundColor: Colors.white, borderRadius: 14, borderWidth: 1, borderColor: Colors.neutral },
   cardImage: { width: 70, height: 70, borderRadius: 10, backgroundColor: Colors.neutral },
-  cardContent: { flex: 1, marginHorizontal: 12 },
+  cardContent: { flex: 1, minWidth: 0, marginHorizontal: 12 },
   cardTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
   cardSubtitle: { marginTop: 5, color: Colors.grayText, fontSize: 13 },
   empty: { alignItems: "center", paddingVertical: 60 },

@@ -2,12 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../../components/ContentImage";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { PageHeader } from "../../components/PageHeader";
 import { Colors } from "../../constants/Colors";
 import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 import { getAuthorName, getPublicContentError, getPublicProject, PublicProject } from "../../src/services/publicContentService";
 
 const difficultyLabel: Record<PublicProject["difficulty"], string> = {
@@ -19,7 +21,8 @@ const difficultyLabel: Record<PublicProject["difficulty"], string> = {
 const extractYoutubeId = (url?: string | null) => {
   if (!url) return null;
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/i);
-  return match?.[1] ?? (/^[\w-]{11}$/.test(url) ? url : null);
+  const candidate = match?.[1] ?? url;
+  return /^[\w-]{11}$/.test(candidate) ? candidate : null;
 };
 
 const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) => (
@@ -32,6 +35,7 @@ const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 export default function ProjectDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isCompact, heroHeight } = useResponsiveLayout();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isAuthenticated, requireAuthentication } = useAuthenticationGate();
   const [project, setProject] = useState<PublicProject | null>(null);
@@ -68,7 +72,7 @@ export default function ProjectDetailScreen() {
 
   if (isLoading || error || !project) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
         <PageHeader title="Projeto" />
         <View style={styles.centerContainer}>
@@ -81,15 +85,15 @@ export default function ProjectDetailScreen() {
   }
 
   const videoId = extractYoutubeId(project.video);
-  const date = project.createdAt
+  const date = project.createdAt && !Number.isNaN(new Date(project.createdAt).getTime())
     ? new Date(project.createdAt).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
     : null;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.imageContainer}>
+        <View style={[styles.imageContainer, { height: heroHeight }]}>
           <Image source={{ uri: project.image }} style={styles.heroImage} />
           <TouchableOpacity accessibilityLabel="Voltar para projetos" accessibilityRole="button" style={[styles.backButton, { top: insets.top + 12 }]} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color={Colors.white} />
@@ -98,12 +102,12 @@ export default function ProjectDetailScreen() {
         <View style={styles.contentContainer}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{project.title}</Text>
-            <TouchableOpacity onPress={toggleFavorite} accessibilityLabel={isAuthenticated ? "Favoritar projeto" : "Entrar para favoritar"}>
+            <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorite} accessibilityLabel={isAuthenticated ? "Favoritar projeto" : "Entrar para favoritar"}>
               <Ionicons name={isFavorited ? "heart" : isAuthenticated ? "heart-outline" : "lock-closed-outline"} size={30} color={Colors.primary} />
             </TouchableOpacity>
           </View>
           <Text style={styles.author}>por {getAuthorName(project)}{date ? ` em ${date}` : ""}</Text>
-          <View style={styles.infoContainer}>
+          <View style={[styles.infoContainer, isCompact && styles.infoContainerCompact]}>
             <InfoBlock icon="bookmark-outline" label="Categoria" value={project.category} />
             <InfoBlock icon="pulse-outline" label="Dificuldade" value={difficultyLabel[project.difficulty] ?? project.difficulty} />
           </View>
@@ -118,7 +122,7 @@ export default function ProjectDetailScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -134,11 +138,13 @@ const styles = StyleSheet.create({
   backButton: { position: "absolute", left: 20, backgroundColor: "rgba(0,0,0,0.5)", padding: 10, borderRadius: 22 },
   contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: Colors.background, marginTop: -20 },
   titleRow: { flexDirection: "row", alignItems: "flex-start", gap: 14 },
+  favoriteButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   title: { flex: 1, fontSize: 28, fontWeight: "bold", color: Colors.text },
   author: { fontSize: 14, color: Colors.grayText, marginTop: 6, marginBottom: 20 },
   infoContainer: { flexDirection: "row", gap: 12, marginBottom: 8 },
+  infoContainerCompact: { flexDirection: "column" },
   infoBlock: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral },
-  infoTextContainer: { marginLeft: 10, flex: 1 },
+  infoTextContainer: { marginLeft: 10, flex: 1, minWidth: 0 },
   infoLabel: { fontSize: 12, color: Colors.grayText },
   infoValue: { fontSize: 15, fontWeight: "600", color: Colors.text, marginTop: 2 },
   sectionTitle: { fontSize: 20, fontWeight: "700", color: Colors.text, marginTop: 22, marginBottom: 12 },

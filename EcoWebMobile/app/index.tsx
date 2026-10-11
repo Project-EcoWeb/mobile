@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
   Image,
-  SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -12,6 +12,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const slides = [
   {
@@ -84,13 +85,23 @@ const Paginator = ({
 
 const Onboarding = () => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const pageWidth = Math.max(1, width - insets.left - insets.right);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scrollX] = useState(() => new Animated.Value(0));
   const slidesRef = useRef<FlatList>(null);
+  const currentIndexRef = useRef(0);
+
+  useEffect(() => {
+    // Realign the current slide after rotation or window resizing.
+    slidesRef.current?.scrollToOffset({ offset: currentIndexRef.current * pageWidth, animated: false });
+  }, [pageWidth]);
 
   const viewableItemsChanged = useCallback(({ viewableItems }: any) => {
-    setCurrentIndex(viewableItems[0]?.index || 0);
+    const index = viewableItems[0]?.index ?? 0;
+    currentIndexRef.current = index;
+    setCurrentIndex(index);
   }, []);
 
   const goToNext = () => {
@@ -106,8 +117,8 @@ const Onboarding = () => {
   };
 
   const renderItem = ({ item }: { item: typeof slides[0] }) => (
-    <View style={[styles.slide, { width, backgroundColor: item.backgroundColor }]}>
-      <View style={styles.imageContainer}>
+    <ScrollView style={[styles.slide, { width: pageWidth, backgroundColor: item.backgroundColor }]} contentContainerStyle={styles.slideContent}>
+      <View style={[styles.imageContainer, { height: Math.min(340, Math.max(120, height * 0.32)) }]}>
         <Image source={item.image} style={styles.image} resizeMode="cover" />
         <View style={styles.imageOverlay} />
       </View>
@@ -122,7 +133,7 @@ const Onboarding = () => {
           {item.text}
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 
   return (
@@ -151,10 +162,12 @@ const Onboarding = () => {
         onViewableItemsChanged={viewableItemsChanged}
         viewabilityConfig={viewConfig}
         ref={slidesRef}
+        getItemLayout={(_, index) => ({ length: pageWidth, offset: pageWidth * index, index })}
+        extraData={pageWidth}
       />
 
       <View style={styles.bottomContainer}>
-        <Paginator currentIndex={currentIndex} scrollX={scrollX} width={width} />
+        <Paginator currentIndex={currentIndex} scrollX={scrollX} width={pageWidth} />
         
         <TouchableOpacity 
           style={[styles.button, { backgroundColor: slides[currentIndex].primaryColor }]} 
@@ -174,10 +187,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   skipButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1,
+    alignSelf: 'flex-end',
+    marginRight: 20,
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: 10,
   },
   skipText: {
@@ -187,13 +200,12 @@ const styles = StyleSheet.create({
   slide: {
     flex: 1,
   },
+  slideContent: { flexGrow: 1, paddingVertical: 16 },
   slidesList: {
     flex: 1,
   },
   imageContainer: {
-    flex: 0.6,
     position: 'relative',
-    marginTop: 80,
   },
   image: {
     width: '85%',
@@ -212,8 +224,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   contentContainer: {
-    flex: 0.4,
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -235,13 +247,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   bottomContainer: {
-    paddingHorizontal: 30,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
     alignItems: 'center',
   },
   paginatorContainer: {
     flexDirection: 'row',
-    height: 64,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -252,9 +264,10 @@ const styles = StyleSheet.create({
   },
   button: {
     paddingVertical: 16,
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     borderRadius: 30,
-    width: '70%',
+    width: '100%',
+    maxWidth: 360,
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
@@ -266,6 +279,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   buttonText: {
+    textAlign: 'center',
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',

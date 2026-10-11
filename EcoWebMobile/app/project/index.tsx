@@ -2,10 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../../components/ContentImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PageHeader } from "../../components/PageHeader";
 import { Colors } from "../../constants/Colors";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 import { getPublicContentError, listPublicProjects, PublicProject } from "../../src/services/publicContentService";
 
 const normalizeText = (value: string) =>
@@ -30,6 +32,7 @@ const ProjectGridCard = ({ item }: { item: PublicProject }) => {
 };
 
 export default function AllProjectsScreen() {
+  const { gridColumns } = useResponsiveLayout();
   const params = useLocalSearchParams<{ query?: string; category?: string }>();
   const [searchQuery, setSearchQuery] = useState(params.query ?? "");
   const [activeCategory, setActiveCategory] = useState<string | null>(params.category ?? null);
@@ -93,14 +96,17 @@ export default function AllProjectsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <PageHeader title="Projetos Criativos" />
       <FlatList
+        key={`projects-${gridColumns}`}
         data={isLoading || error ? [] : filteredProjects}
         renderItem={({ item }) => <ProjectGridCard item={item} />}
         keyExtractor={(item) => item._id}
-        numColumns={2}
+        numColumns={gridColumns}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         ListHeaderComponent={listHeader}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
@@ -123,7 +129,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   listContainer: { paddingHorizontal: 10, paddingBottom: 24 },
   searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, borderRadius: 15, paddingHorizontal: 15, margin: 20, marginBottom: 0, borderColor: Colors.neutral, borderWidth: 1 },
-  searchInput: { flex: 1, height: 50, fontSize: 16, marginLeft: 10, color: Colors.text },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 50, fontSize: 16, marginLeft: 10, color: Colors.text },
   filterTitle: { fontSize: 16, fontWeight: "600", color: Colors.grayText, marginHorizontal: 20, marginTop: 20 },
   categoryScroll: { paddingHorizontal: 20, paddingVertical: 10, gap: 10 },
   chip: { backgroundColor: Colors.white, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: Colors.neutral },
