@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -19,10 +18,9 @@ import {
 } from 'react-native';
 import { EcoWebLogo } from '../../components/logo';
 import api from '../../src/services/api';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function RegisterScreen() {
-  const insets = useSafeAreaInsets();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -53,12 +51,13 @@ export default function RegisterScreen() {
   };
 
 const handleCadastro = async () => {
-  if (!nome || !email || !senha || !confirmarSenha) {
+  if (loading) return;
+  if (!nome.trim() || !email.trim() || !senha || !confirmarSenha) {
     Alert.alert('Erro', 'Por favor, preencha todos os campos.');
     return;
   }
 
-  if (!validateEmail(email)) {
+  if (!validateEmail(email.trim())) {
     Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
     return;
   }
@@ -82,8 +81,8 @@ const handleCadastro = async () => {
     setLoading(true);
 
     await api.post('/auth/register', {
-      name: nome,
-      email,
+      name: nome.trim(),
+      email: email.trim().toLowerCase(),
       password: senha,
     });
 
@@ -110,7 +109,7 @@ const handleCadastro = async () => {
           accessibilityLabel="Voltar para o login"
           accessibilityRole="button"
           onPress={handleBack}
-          style={[styles.backButton, { top: insets.top + 8 }]}
+          style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color="#2E7D32" />
         </TouchableOpacity>
@@ -121,6 +120,8 @@ const handleCadastro = async () => {
           <ScrollView 
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
             <View style={styles.header}>
               <EcoWebLogo size={100} showText={true} variant="dark" />
@@ -289,9 +290,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    position: 'absolute',
-    left: 16,
-    zIndex: 2,
+    marginLeft: 16,
+    marginTop: 8,
     width: 44,
     height: 44,
     alignItems: 'center',
@@ -302,6 +302,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
@@ -378,21 +381,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8F9FA',
     borderRadius: 15,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 16,
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
   inputIcon: {
-    marginRight: 15,
+    marginRight: 8,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     color: '#333',
   },
   eyeButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 5,
   },
   termsContainer: {
@@ -452,6 +460,8 @@ const styles = StyleSheet.create({
   },
   loginSection: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },

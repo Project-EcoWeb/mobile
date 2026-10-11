@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,10 +19,10 @@ import {
 import { EcoWebLogo } from "../components/logo";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { getAuthenticationDestination } from "../src/navigation/accessControl";
 
 export default function LoginScreen() {
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,11 +47,12 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
+    if (loading) return;
     if (!email || !password) {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
     }
-    if (!validateEmail(email)) {
+    if (!validateEmail(email.trim())) {
       Alert.alert("Erro", "Por favor, insira um e-mail válido.");
       return;
     }
@@ -60,7 +61,7 @@ export default function LoginScreen() {
       setLoading(true);
 
       const response = await api.post("/auth/login", {
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
@@ -78,7 +79,7 @@ export default function LoginScreen() {
         userType,
         token,
       });
-      router.replace((redirect?.startsWith("/") ? redirect : "/dashboard") as never);
+      router.replace(getAuthenticationDestination(redirect) as never);
     } catch (error: any) {
       const mensagem =
         error.response?.data?.message ||
@@ -98,7 +99,7 @@ export default function LoginScreen() {
         accessibilityLabel="Voltar para explorar"
         accessibilityRole="button"
         onPress={handleBack}
-        style={[styles.backButton, { top: insets.top + 8 }]}
+        style={styles.backButton}
       >
         <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
       </TouchableOpacity>
@@ -110,10 +111,10 @@ export default function LoginScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
           <View style={styles.logoSection}>
             <EcoWebLogo size={120} showText={true} variant="light" />
           </View>
@@ -174,7 +175,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity style={styles.forgotPassword} onPress={() => Alert.alert("Recuperação de senha", "A recuperação de senha ainda não está disponível.")}>
               <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
@@ -208,7 +209,7 @@ export default function LoginScreen() {
               </Pressable>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -223,11 +224,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: "100%",
     height: "100%",
+    overflow: "hidden",
+    pointerEvents: "none",
   },
   backButton: {
-    position: "absolute",
-    left: 16,
-    zIndex: 2,
+    marginLeft: 16,
+    marginTop: 8,
     width: 44,
     height: 44,
     alignItems: "center",
@@ -263,8 +265,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
     paddingHorizontal: 30,
+    paddingVertical: 24,
     justifyContent: "center",
   },
   logoSection: {
@@ -276,6 +282,7 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   welcomeTitle: {
+    textAlign: "center",
     fontSize: 32,
     fontWeight: "bold",
     color: "#FFFFFF",
@@ -308,10 +315,15 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     color: "#FFFFFF",
   },
   eyeButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
     padding: 5,
   },
   forgotPassword: {
@@ -361,6 +373,8 @@ const styles = StyleSheet.create({
   },
   registerSection: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    rowGap: 10,
     justifyContent: "center",
     alignItems: "center",
   },

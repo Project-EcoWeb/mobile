@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { Stack, usePathname, useRouter } from "expo-router";
+import { Stack, useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { ActivityIndicator, View } from "react-native";
-import { isAuthenticationRoute, isProtectedRoute } from "../src/navigation/accessControl";
+import { getAuthenticationDestination, isAuthenticationRoute, isProtectedRoute } from "../src/navigation/accessControl";
 
 export default function RootLayout() {
   return (
@@ -16,6 +16,7 @@ function Layout() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const { redirect } = useGlobalSearchParams<{ redirect?: string }>();
 
   useEffect(() => {
     if (isLoading) {
@@ -27,9 +28,9 @@ function Layout() {
     }
 
     if (user && (pathname === "/" || isAuthenticationRoute(pathname))) {
-      router.replace("/dashboard");
+      router.replace((isAuthenticationRoute(pathname) ? getAuthenticationDestination(redirect) : "/dashboard") as never);
     }
-  }, [user, isLoading, router, pathname]);
+  }, [user, isLoading, router, pathname, redirect]);
 
   if (isLoading) {
     return (
