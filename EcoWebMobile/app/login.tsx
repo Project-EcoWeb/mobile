@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
@@ -29,6 +29,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
+  const { redirect } = useLocalSearchParams<{ redirect?: string }>();
   const { signIn } = useAuth();
 
   const handleBack = () => {
@@ -77,9 +78,11 @@ export default function LoginScreen() {
         userType,
         token,
       });
+      router.replace((redirect?.startsWith("/") ? redirect : "/dashboard") as never);
     } catch (error: any) {
       const mensagem =
         error.response?.data?.message ||
+        error.response?.data?.error ||
         "Falha ao fazer login. Verifique seus dados.";
       Alert.alert("Erro", mensagem);
     } finally {
@@ -118,7 +121,7 @@ export default function LoginScreen() {
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeTitle}>Bem-vindo de volta</Text>
             <Text style={styles.welcomeSubtitle}>
-              Entre na sua conta para continuar
+              {redirect ? "Entre para continuar de onde parou" : "Entre na sua conta para continuar"}
             </Text>
           </View>
 
@@ -200,7 +203,7 @@ export default function LoginScreen() {
 
             <View style={styles.registerSection}>
               <Text style={styles.registerText}>Não tem uma conta?</Text>
-              <Pressable onPress={() => router.push("./auth/register")}>
+              <Pressable onPress={() => router.push({ pathname: "/auth/register", params: redirect ? { redirect } : {} })}>
                 <Text style={styles.registerLink}>Criar conta</Text>
               </Pressable>
             </View>
