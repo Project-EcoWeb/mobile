@@ -55,7 +55,7 @@ const ConversationRow = ({ item }: { item: Conversation }) => {
   return (
     <TouchableOpacity
       style={styles.row}
-      onPress={() => router.push(`../chat/${item.id}`)}
+      onPress={() => router.push(`/chat/${item.id}`)}
     >
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
       <View style={styles.textContainer}>
@@ -78,7 +78,7 @@ const ConversationRow = ({ item }: { item: Conversation }) => {
 
 export default function MessagesScreen() {
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <PageHeader title="Mensagens" />
       <FlatList
@@ -113,10 +113,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   avatar: { width: 60, height: 60, borderRadius: 30, marginRight: 15 },
-  textContainer: { flex: 1, justifyContent: "center" },
+  textContainer: { flex: 1, minWidth: 0, justifyContent: "center" },
   name: { fontSize: 17, fontWeight: "600", color: Colors.text },
   lastMessage: { fontSize: 15, color: Colors.grayText, marginTop: 4 },
-  metaContainer: { alignItems: "flex-end" },
+  metaContainer: { alignItems: "flex-end", marginLeft: 8 },
   timestamp: { fontSize: 13, color: Colors.grayText, marginBottom: 8 },
   unreadBadge: {
     backgroundColor: Colors.primary,

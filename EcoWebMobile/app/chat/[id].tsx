@@ -3,6 +3,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
 import {
+    Alert,
     FlatList,
     KeyboardAvoidingView,
     Platform,
@@ -12,7 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { PageHeader } from '../../components/PageHeader';
 
@@ -52,31 +53,33 @@ const MessageBubble = ({ item }: { item: Message }) => {
 
 
 export default function ChatScreen() {
+    const insets = useSafeAreaInsets();
     const { id } = useLocalSearchParams<{ id: string }>();
     const messages = MOCK_CHAT_HISTORY[id] || [];
     const [newMessage, setNewMessage] = useState('');
 
     const handleSend = () => {
         if (newMessage.trim() === '') return;
-        console.log('Enviando:', newMessage);
-        setNewMessage('');
+        Alert.alert('Mensagens indisponíveis', 'O envio de mensagens ainda não está integrado. Seu texto foi mantido para você não perdê-lo.');
     };
     
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.container}>
             <StatusBar style="dark" />
-            <PageHeader title="Madeireira Verde" />
+            <PageHeader title={id === 'chat1' ? "Madeireira Verde" : "Conversa"} />
             <KeyboardAvoidingView 
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 68 : 0}
             >
                 <FlatList
                     style={styles.chatList}
                     data={messages}
                     renderItem={MessageBubble}
                     keyExtractor={(item) => item.id}
-                    inverted 
+                    inverted
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
                 />
                 
                 <View style={styles.inputContainer}>
@@ -87,7 +90,7 @@ export default function ChatScreen() {
                         onChangeText={setNewMessage}
                         multiline
                     />
-                    <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+                    <TouchableOpacity accessibilityLabel="Enviar mensagem" style={styles.sendButton} onPress={handleSend}>
                         <Ionicons name="arrow-up-circle" size={38} color={Colors.primary} />
                     </TouchableOpacity>
                 </View>
@@ -109,6 +112,6 @@ const styles = StyleSheet.create({
     senderText: { color: Colors.white, fontSize: 16 },
     receiverText: { color: Colors.text, fontSize: 16 },
     inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderTopColor: Colors.neutral },
-    textInput: { flex: 1, backgroundColor: Colors.neutral, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
-    sendButton: { marginLeft: 8, justifyContent: 'center', alignItems: 'center' },
+    textInput: { flex: 1, minWidth: 0, color: Colors.text, backgroundColor: Colors.neutral, borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, fontSize: 16, maxHeight: 100 },
+    sendButton: { marginLeft: 8, minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
 });

@@ -6,7 +6,6 @@ import {
     ActivityIndicator,
     Alert,
     FlatList,
-    Image,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -14,9 +13,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
+import { ContentImage as Image } from '../../components/ContentImage';
 import { PageHeader } from '../../components/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { getMeProjects } from "../../src/services/projectServices";
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
+import { getPublicContentError } from '../../src/services/publicContentService';
 
 interface UserProject {
   id: string;
@@ -63,8 +65,10 @@ const MyProjectCard = ({ item, onEdit, onDelete }: { item: UserProject, onEdit: 
 export default function MyProjectsScreen() {
     const router = useRouter();
     const { user } = useAuth();
+    const { gridColumns } = useResponsiveLayout();
     const [myProjects, setMyProjects] = useState<UserProject[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const handleAddNew = () => {
         router.push('/project/register');
@@ -77,6 +81,7 @@ export default function MyProjectsScreen() {
         }
 
         setIsLoading(true);
+        setError(null);
         try {
             const response = await getMeProjects(token);
 
@@ -90,8 +95,7 @@ export default function MyProjectsScreen() {
 
             setMyProjects(mappedProjects);
         } catch (error) {
-            console.error("Erro detalhado ao buscar projetos:", error); 
-            Alert.alert("Falha ao buscar projetos", "Não foi possível carregar seus projetos. Tente novamente.");
+            setError(getPublicContentError(error, "Não foi possível carregar seus projetos. Tente novamente."));
         } finally {
             setIsLoading(false);
         }
@@ -109,26 +113,17 @@ export default function MyProjectsScreen() {
         return () => clearTimeout(requestId);
     }, [user?.token, fetchProjects]);
 
-    const handleDelete = (idToDelete: string) => {
-        Alert.alert(
-            "Excluir Projeto",
-            "Você tem certeza? Esta ação não pode ser desfeita.",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", style: "destructive", onPress: () => {
-                    setMyProjects(prev => prev.filter(p => p.id !== idToDelete));
-                }}
-            ]
-        );
+    const handleDelete = () => {
+        Alert.alert("Exclusão indisponível", "A exclusão de projetos ainda não está integrada. Seu projeto foi mantido.");
     };
 
-    const handleEdit = (idToEdit: string) => {
-        Alert.alert("Editar Projeto", `Função Indisponivel`);
+    const handleEdit = () => {
+        Alert.alert("Editar Projeto", "A edição de projetos ainda não está integrada.");
     };
 
     if (isLoading) {
         return (
-            <SafeAreaView style={styles.container} edges={['top']}>
+            <SafeAreaView style={styles.container}>
                 <StatusBar style="dark" />
                 <PageHeader title="Meus Projetos" />
                 <View style={styles.loadingContainer}>
@@ -140,21 +135,22 @@ export default function MyProjectsScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container}>
             <StatusBar style="dark" />
             <PageHeader
                 title="Meus Projetos"
                 right={
-                    <TouchableOpacity onPress={handleAddNew} style={styles.headerButton}>
-                        <Text style={styles.headerButtonText}>+ Criar Novo</Text>
+                    <TouchableOpacity accessibilityLabel="Criar novo projeto" onPress={handleAddNew} style={styles.headerButton}>
+                        <Ionicons name="add" size={24} color={Colors.white} />
                     </TouchableOpacity>
                 }
             />
             <FlatList
-                data={myProjects}
+                key={`my-projects-${gridColumns}`}
+                data={error ? [] : myProjects}
                 renderItem={({ item }) => <MyProjectCard item={item} onEdit={handleEdit} onDelete={handleDelete} />}
                 keyExtractor={(item) => item.id}
-                numColumns={2}
+                numColumns={gridColumns}
                 onRefresh={fetchProjects}
                 refreshing={isLoading}
                 contentContainerStyle={styles.listContainer}
@@ -164,9 +160,9 @@ export default function MyProjectsScreen() {
                 ListEmptyComponent={
                     !isLoading && (<View style={styles.emptyContainer}>
                         <Ionicons name="bulb-outline" size={60} color={Colors.grayText} />
-                        <Text style={styles.emptyText}>Você ainda não publicou nenhum projeto.</Text>
-                        <TouchableOpacity style={styles.emptyButton} onPress={handleAddNew}>
-                            <Text style={styles.emptyButtonText}>Criar primeiro projeto</Text>
+                        <Text style={styles.emptyText}>{error ?? "Você ainda não publicou nenhum projeto."}</Text>
+                        <TouchableOpacity style={styles.emptyButton} onPress={error ? fetchProjects : handleAddNew}>
+                            <Text style={styles.emptyButtonText}>{error ? "Tentar novamente" : "Criar primeiro projeto"}</Text>
                         </TouchableOpacity>
                     </View>)
                 }
@@ -192,6 +188,10 @@ const styles = StyleSheet.create({
         color: Colors.grayText,
     },
     headerButton: {
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
         backgroundColor: Colors.primary,
         paddingHorizontal: 12,
         paddingVertical: 6,
@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
     listContainer: {
         paddingHorizontal: 10,
         paddingTop: 10,
+        paddingBottom: 24,
     },
     listHeaderTitle: {
         fontSize: 16,
@@ -242,6 +243,7 @@ const styles = StyleSheet.create({
     },
     statsRow: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         alignItems: 'center',
         gap: 16,
         borderTopWidth: 1,
@@ -266,6 +268,10 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     actionButton: {
+        minWidth: 44,
+        minHeight: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 8,
         borderRadius: 20,
         backgroundColor: Colors.background,
