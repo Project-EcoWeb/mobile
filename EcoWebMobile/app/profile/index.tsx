@@ -79,7 +79,7 @@ export default function ProfileScreen() {
     if (!user) return null;
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container}>
             <StatusBar style="dark" />
             <PageHeader title="Perfil" />
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -95,7 +95,7 @@ export default function ProfileScreen() {
                 </View>
                 
                 <View style={styles.menuSection}>
-                    <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => alert('Funçaõ Indisponivel')}/>
+                    <ProfileRow icon="person-outline" title="Editar Perfil" onPress={() => Alert.alert('Editar perfil', 'A edição de perfil ainda não está disponível.')}/>
                 </View>
 
                 {user.userType === 'company' && (
@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
     },
     profileHeader: {
+        paddingHorizontal: 20,
         alignItems: 'center',
         marginBottom: 24,
     },
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     profileName: {
+        textAlign: 'center',
         fontSize: 24,
         fontWeight: 'bold',
         color: Colors.text,
@@ -161,6 +163,7 @@ const styles = StyleSheet.create({
         color: Colors.primary,
     },
     statLabel: {
+        textAlign: 'center',
         fontSize: 14,
         color: Colors.grayText,
         marginTop: 4,

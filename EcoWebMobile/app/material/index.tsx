@@ -2,11 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../../components/ContentImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PageHeader } from "../../components/PageHeader";
 import { Colors } from "../../constants/Colors";
 import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 import { getPublicContentError, listPublicMaterials, PublicMaterial } from "../../src/services/publicContentService";
 
 const normalizeText = (value: string) =>
@@ -14,14 +16,15 @@ const normalizeText = (value: string) =>
 
 const MaterialCard = ({ item, isAuthenticated, onContact }: { item: PublicMaterial; isAuthenticated: boolean; onContact: () => void }) => {
   const router = useRouter();
+  const { isCompact } = useResponsiveLayout();
   return (
-    <TouchableOpacity style={styles.card} onPress={() => router.push(`/material/${item._id}`)} activeOpacity={0.8}>
+    <TouchableOpacity style={[styles.card, isCompact && styles.cardCompact]} onPress={() => router.push(`/material/${item._id}`)} activeOpacity={0.8}>
       {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.cardImage} />
+        <Image source={{ uri: item.image }} style={[styles.cardImage, isCompact && styles.cardImageCompact]} />
       ) : (
-        <View style={[styles.cardImage, styles.imagePlaceholder]}><Ionicons name="cube-outline" size={34} color={Colors.primary} /></View>
+        <View style={[styles.cardImage, styles.imagePlaceholder, isCompact && styles.cardImageCompact]}><Ionicons name="cube-outline" size={34} color={Colors.primary} /></View>
       )}
-      <View style={styles.cardContent}>
+      <View style={[styles.cardContent, isCompact && styles.cardContentCompact]}>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardDescription} numberOfLines={2}>{item.description}</Text>
         <View style={styles.infoRow}><Ionicons name="location-outline" size={16} color={Colors.grayText} /><Text style={styles.infoText} numberOfLines={1}>{item.location}</Text></View>
@@ -98,10 +101,12 @@ export default function BrowseMaterialsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <PageHeader title="Materiais" />
       <FlatList
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         data={isLoading || error ? [] : filteredMaterials}
         renderItem={({ item }) => <MaterialCard item={item} isAuthenticated={isAuthenticated} onContact={() => navigateWithAuthentication(`/chat/${item._id}`)} />}
         keyExtractor={(item) => item._id}
@@ -128,7 +133,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10 },
   headerTitle: { fontSize: 28, fontWeight: "bold", color: Colors.text },
   searchContainer: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, borderRadius: 15, paddingHorizontal: 15, marginHorizontal: 20, borderColor: Colors.neutral, borderWidth: 1 },
-  searchInput: { flex: 1, height: 50, fontSize: 16, marginLeft: 10, color: Colors.text },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 50, fontSize: 16, marginLeft: 10, color: Colors.text },
   categoryScroll: { paddingHorizontal: 20, paddingVertical: 15, gap: 10 },
   chip: { backgroundColor: Colors.white, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: Colors.neutral },
   chipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
@@ -137,15 +142,18 @@ const styles = StyleSheet.create({
   listContainer: { paddingHorizontal: 20, paddingBottom: 20 },
   card: { flexDirection: "row", backgroundColor: Colors.white, borderRadius: 16, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: Colors.neutral, elevation: 2, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 5 },
   cardImage: { width: 100, minHeight: 160, borderRadius: 12, backgroundColor: Colors.neutral },
+  cardCompact: { flexDirection: "column" },
+  cardImageCompact: { width: "100%", height: 160 },
+  cardContentCompact: { marginLeft: 0, marginTop: 12 },
   imagePlaceholder: { alignItems: "center", justifyContent: "center" },
-  cardContent: { flex: 1, marginLeft: 12, justifyContent: "space-between" },
+  cardContent: { flex: 1, minWidth: 0, marginLeft: 12, justifyContent: "space-between" },
   cardTitle: { fontSize: 17, fontWeight: "bold", color: Colors.text },
   cardDescription: { fontSize: 14, color: Colors.grayText, marginVertical: 4 },
   infoRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
   infoText: { flex: 1, marginLeft: 6, fontSize: 13, color: Colors.grayText, fontWeight: "500" },
   contactButton: { backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 10, marginTop: 10, alignItems: "center", flexDirection: "row", justifyContent: "center" },
   contactIcon: { marginRight: 8 },
-  contactButtonText: { color: Colors.white, fontWeight: "bold", fontSize: 14 },
+  contactButtonText: { flexShrink: 1, textAlign: "center", color: Colors.white, fontWeight: "bold", fontSize: 14 },
   emptyContainer: { flex: 1, marginTop: 100, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   emptyText: { fontSize: 17, fontWeight: "600", color: Colors.grayText, marginTop: 10, textAlign: "center" },
   emptySubtext: { fontSize: 14, color: Colors.grayText, marginTop: 5 },

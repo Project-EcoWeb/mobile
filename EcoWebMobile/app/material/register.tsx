@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -18,6 +19,9 @@ import { Colors } from "../../constants/Colors";
 import api from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { isHttpUrl } from "../../src/utils/validation";
+import { getPublicContentError } from "../../src/services/publicContentService";
 
 const CATEGORIES = [
   "Madeira",
@@ -31,6 +35,8 @@ const CATEGORIES = [
 export default function RegisterMaterialScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { requireAuthentication } = useAuthenticationGate();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [materialName, setMaterialName] = useState("");
@@ -49,19 +55,26 @@ export default function RegisterMaterialScreen() {
     router.replace("/material/me");
   };
 
-  const canRegister =
-    imageUri && materialName && category && quantity && unit && location;
+  const numericQuantity = Number(quantity.trim().replace(",", "."));
+  const canRegister = Boolean(materialName.trim() && category && description.trim() && quantity.trim() && Number.isFinite(numericQuantity) && numericQuantity >= 1 && unit.trim() && location.trim());
 
   const handleRegister = async () => {
+    if (isPublishing) return;
     if (!canRegister) {
       Alert.alert(
         "Campos Incompletos",
-        "Por favor, preencha todos os campos obrigatórios."
+        "Informe nome, categoria, descrição, quantidade de pelo menos 1, unidade e local de retirada."
       );
       return;
     }
+    if (imageUri?.trim() && !isHttpUrl(imageUri)) {
+      Alert.alert("Link inválido", "Informe um link de imagem iniciado por http:// ou https://.");
+      return;
+    }
+    if (!requireAuthentication()) return;
 
     try {
+      setIsPublishing(true);
       const token = await AsyncStorage.getItem("@ecoweb_token");
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado.");
@@ -69,12 +82,13 @@ export default function RegisterMaterialScreen() {
       }
 
       const payload = {
-        name: materialName,
-        image: imageUri, 
+        name: materialName.trim(),
+        image: imageUri?.trim() || undefined,
         category,
-        description,
-        quantity: `${quantity} ${unit}`,
-        location,
+        description: description.trim(),
+        quantity: numericQuantity,
+        unitOfMeasure: unit.trim(),
+        location: location.trim(),
       };
 
       await api.post("/materials", payload);
@@ -82,14 +96,15 @@ export default function RegisterMaterialScreen() {
       Alert.alert(
         "Sucesso!",
         "Seu material foi cadastrado e está disponível para a comunidade.",
-        [{ text: "OK", onPress: () => router.back() }]
+        [{ text: "OK", onPress: () => router.replace("/material/me") }]
       );
-    } catch (error: any) {
-      console.error("Erro ao cadastrar material:", error);
+    } catch (error) {
       Alert.alert(
         "Erro",
-        "Não foi possível cadastrar o material. Tente novamente."
+        getPublicContentError(error, "Não foi possível cadastrar o material. Tente novamente.")
       );
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -99,11 +114,12 @@ export default function RegisterMaterialScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <StatusBar style="dark" />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingLeft: insets.left + 16, paddingRight: insets.right + 16 }]}>
         <TouchableOpacity
           accessibilityLabel="Voltar para meus materiais"
           accessibilityRole="button"
           onPress={handleBack}
+          style={styles.headerBackButton}
         >
           <Ionicons name="close-outline" size={32} color={Colors.text} />
         </TouchableOpacity>
@@ -113,19 +129,18 @@ export default function RegisterMaterialScreen() {
             styles.publishButton,
             !canRegister && styles.publishButtonDisabled,
           ]}
-          disabled={!canRegister}
+          disabled={!canRegister || isPublishing}
           onPress={handleRegister}
         >
-          <Text style={styles.publishButtonText}>Cadastrar</Text>
+          {isPublishing ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.publishButtonText}>Cadastrar</Text>}
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.sectionTitle}>Foto do Material</Text>
-        <Text style={styles.sectionTitle}>URL da Imagem</Text>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={[styles.scrollContainer, { paddingBottom: insets.bottom + 32, paddingLeft: insets.left + 20, paddingRight: insets.right + 20 }]}>
+        <Text style={styles.sectionTitle}>URL da Imagem (Opcional)</Text>
         <TextInput
           style={styles.input}
-          placeholder="Cole a URL da imagem principal do projeto"
+          placeholder="Cole a URL da imagem do material"
           value={imageUri ?? ""}
           onChangeText={setImageUri}
           autoCapitalize="none"
@@ -194,7 +209,7 @@ export default function RegisterMaterialScreen() {
           onChangeText={setLocation}
         />
 
-        <Text style={styles.sectionTitle}>Descrição (Opcional)</Text>
+        <Text style={styles.sectionTitle}>Descrição</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           placeholder="Condição do material, frequência de descarte, etc."
@@ -223,11 +238,17 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.neutral,
   },
   headerTitle: {
+    flex: 1,
+    minWidth: 0,
+    textAlign: "center",
+    marginHorizontal: 8,
     fontSize: 18,
     fontWeight: "bold",
     color: Colors.text,
   },
   publishButton: {
+    minHeight: 44,
+    justifyContent: "center",
     backgroundColor: Colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -282,6 +303,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   input: {
+    minWidth: 0,
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 15,
@@ -328,4 +350,5 @@ const styles = StyleSheet.create({
   unitInput: {
     flex: 3,
   },
+  headerBackButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
 });

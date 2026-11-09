@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -18,12 +19,17 @@ import { Colors } from "../../constants/Colors";
 import api from "../../src/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { isHttpUrl } from "../../src/utils/validation";
+import { getPublicContentError } from "../../src/services/publicContentService";
 
 const CATEGORIES = ["Móveis", "Decoração", "Jardim", "Moda", "Brinquedos"];
 
 export default function CreateProjectScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { requireAuthentication } = useAuthenticationGate();
+  const [isPublishing, setIsPublishing] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -46,15 +52,22 @@ export default function CreateProjectScreen() {
   };
 
   const handlePublish = async () => {
-    if (!title || !imageUri || !category) {
+    if (isPublishing) return;
+    if (!canPublish) {
       Alert.alert(
         "Atenção",
-        "Por favor, preencha todos os campos obrigatórios."
+        "Informe título, imagem, categoria, dificuldade, descrição, ao menos um material e um passo."
       );
       return;
     }
+    if (!isHttpUrl(imageUri) || (youtubeUrl.trim() && !isHttpUrl(youtubeUrl))) {
+      Alert.alert("Link inválido", "Informe links completos iniciados por http:// ou https://.");
+      return;
+    }
+    if (!requireAuthentication()) return;
 
     try {
+      setIsPublishing(true);
       const token = await AsyncStorage.getItem("@ecoweb_token");
       if (!token) {
         Alert.alert("Erro", "Usuário não autenticado.");
@@ -62,26 +75,27 @@ export default function CreateProjectScreen() {
       }
 
       const payload = {
-        title,
-        image: imageUri,
+        title: title.trim(),
+        image: imageUri?.trim(),
         category,
         difficulty,
-        description,
+        description: description.trim(),
         materials,
-        stages: steps,
-        video: youtubeUrl,
+        stages: steps.map((step) => step.trim()).filter(Boolean),
+        video: youtubeUrl.trim() || undefined,
       };
 
       await api.post("/projects", payload);
 
       Alert.alert("Sucesso", "Projeto cadastrado com sucesso!");
-      router.back();
-    } catch (error: any) {
-      console.error("Erro ao cadastrar projeto", error);
+      router.replace("/project/me");
+    } catch (error) {
       Alert.alert(
         "Erro",
-        "Não foi possível cadastrar o projeto. Tente novamente."
+        getPublicContentError(error, "Não foi possível cadastrar o projeto. Tente novamente.")
       );
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -110,7 +124,7 @@ export default function CreateProjectScreen() {
     setSteps(newSteps);
   };
 
-  const canPublish = title && imageUri && category && difficulty;
+  const canPublish = Boolean(title.trim() && imageUri?.trim() && category && difficulty && description.trim() && materials.length && steps.some((step) => step.trim()));
 
   return (
     <KeyboardAvoidingView
@@ -118,7 +132,7 @@ export default function CreateProjectScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
     >
       <StatusBar style="dark" />
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 8, paddingLeft: insets.left + 16, paddingRight: insets.right + 16 }]}>
         <TouchableOpacity
           accessibilityLabel="Voltar"
           accessibilityRole="button"
@@ -133,14 +147,14 @@ export default function CreateProjectScreen() {
             styles.publishButton,
             !canPublish && styles.publishButtonDisabled,
           ]}
-          disabled={!canPublish}
+          disabled={!canPublish || isPublishing}
           onPress={handlePublish}
         >
-          <Text style={styles.publishButtonText}>Publicar</Text>
+          {isPublishing ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.publishButtonText}>Publicar</Text>}
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={[styles.scrollContainer, { paddingBottom: insets.bottom + 32, paddingLeft: insets.left + 20, paddingRight: insets.right + 20 }]}>
         <Text style={styles.sectionTitle}>URL da Imagem</Text>
         <TextInput
           style={styles.input}
@@ -294,6 +308,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
+    minWidth: 0,
     marginLeft: 8,
     fontSize: 18,
     fontWeight: "bold",
@@ -301,12 +316,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   headerBackButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   publishButton: {
+    minHeight: 44,
+    justifyContent: "center",
     backgroundColor: Colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -361,6 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   input: {
+    minWidth: 0,
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 15,
@@ -403,6 +421,8 @@ const styles = StyleSheet.create({
   },
   materialInput: {
     flex: 1,
+    minWidth: 0,
+    color: Colors.text,
     backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 15,
@@ -425,6 +445,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   materialTag: {
+    maxWidth: "100%",
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.accent,
@@ -433,6 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   materialTagText: {
+    flexShrink: 1,
     color: Colors.primary,
     fontWeight: "bold",
     marginRight: 6,

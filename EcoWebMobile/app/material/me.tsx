@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { PageHeader } from '../../components/PageHeader';
 import { imagesMaterials } from '../../assets/images/image.js';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
 interface CompanyMaterial {
   id: string;
@@ -32,12 +33,13 @@ const MOCK_COMPANY_MATERIALS: CompanyMaterial[] = [
 ];
 
 const ManagementCard = ({ item, onEdit, onDelete }: { item: CompanyMaterial, onEdit: (id: string) => void, onDelete: (id: string) => void }) => {
+    const { isCompact } = useResponsiveLayout();
     const statusColor = item.status === 'Ativo' ? Colors.primary : item.status === 'Reservado' ? '#FFA000' : Colors.grayText;
 
     return (
-        <View style={styles.card}>
+        <View style={[styles.card, isCompact && styles.cardCompact]}>
             <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <View style={styles.cardContent}>
+            <View style={[styles.cardContent, isCompact && styles.cardContentCompact]}>
                 <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                     <Text style={styles.statusText}>{item.status}</Text>
                 </View>
@@ -59,27 +61,18 @@ const ManagementCard = ({ item, onEdit, onDelete }: { item: CompanyMaterial, onE
 
 export default function ManageMaterialsScreen() {
     const router = useRouter();
-    const [materials, setMaterials] = useState(MOCK_COMPANY_MATERIALS);
+    const [materials] = useState(MOCK_COMPANY_MATERIALS);
 
     const handleAddNew = () => {
         router.push('/material/register');
     };
 
-    const handleDelete = (idToDelete: string) => {
-        Alert.alert(
-            "Excluir Material",
-            "Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", style: "destructive", onPress: () => {
-                    setMaterials(prev => prev.filter(m => m.id !== idToDelete));
-                }}
-            ]
-        );
+    const handleDelete = () => {
+        Alert.alert("Exclusão indisponível", "A exclusão de materiais ainda não está integrada. Nenhum material foi excluído.");
     };
 
-    const handleEdit = (idToEdit: string) => {
-        Alert.alert("Editar Material", `Navegando para editar o item ${idToEdit}.`);
+    const handleEdit = () => {
+        Alert.alert("Editar Material", "A edição de materiais ainda não está integrada.");
     };
 
     const ListHeader = (
@@ -97,12 +90,12 @@ export default function ManageMaterialsScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container}>
             <StatusBar style="dark" />
             <PageHeader
                 title="Meus Materiais"
                 right={
-                    <TouchableOpacity onPress={handleAddNew} style={styles.headerButton}>
+                    <TouchableOpacity accessibilityLabel="Oferecer material" onPress={handleAddNew} style={styles.headerButton}>
                         <Ionicons name="add" size={28} color={Colors.primary} />
                     </TouchableOpacity>
                 }
@@ -129,7 +122,7 @@ export default function ManageMaterialsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background, },
-    headerButton: { marginRight: 10 },
+    headerButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
     statsContainer: {
         flexDirection: 'row',
         backgroundColor: Colors.white,
@@ -144,7 +137,7 @@ const styles = StyleSheet.create({
     },
     statBox: { flex: 1, alignItems: 'center' },
     statValue: { fontSize: 24, fontWeight: 'bold', color: Colors.primary },
-    statLabel: { fontSize: 14, color: Colors.grayText, marginTop: 4 },
+    statLabel: { fontSize: 14, color: Colors.grayText, marginTop: 4, textAlign: 'center' },
     statSeparator: { width: 1, backgroundColor: Colors.neutral },
     listContainer: { paddingHorizontal: 20, paddingBottom: 20 },
     card: {
@@ -165,6 +158,7 @@ const styles = StyleSheet.create({
     },
     cardContent: {
         flex: 1,
+        minWidth: 0,
         marginLeft: 12,
         justifyContent: 'center',
     },
@@ -194,7 +188,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 8,
     },
+    cardCompact: { flexWrap: 'wrap' },
+    cardContentCompact: { flexBasis: 140 },
     actionButton: {
+        minWidth: 44,
+        minHeight: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 8,
         backgroundColor: Colors.background,
         borderRadius: 20,
