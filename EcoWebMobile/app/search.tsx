@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../components/ContentImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PageHeader } from "../components/PageHeader";
 import { Colors } from "../constants/Colors";
@@ -20,11 +21,16 @@ export default function SearchScreen() {
   const [results, setResults] = useState<ResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestVersion = useRef(0);
 
   const search = useCallback(async (value: string) => {
+    const version = ++requestVersion.current;
+    Keyboard.dismiss();
     const normalizedQuery = value.trim().slice(0, 100);
+    setError(null);
+    setResults([]);
     if (!normalizedQuery) {
-      setResults([]);
+      setIsLoading(false);
       setSubmittedQuery("");
       return;
     }
@@ -34,23 +40,26 @@ export default function SearchScreen() {
       setError(null);
       setSubmittedQuery(normalizedQuery);
       const response = await searchPublicContent(normalizedQuery);
+      if (version !== requestVersion.current) return;
       setResults([
         ...response.results.projects.map((data): ResultItem => ({ type: "project", data })),
         ...response.results.materials.map((data): ResultItem => ({ type: "material", data })),
       ]);
     } catch (searchError) {
+      if (version !== requestVersion.current) return;
       setResults([]);
       setError(getPublicContentError(searchError, "Não foi possível realizar a busca."));
     } finally {
-      setIsLoading(false);
+      if (version === requestVersion.current) setIsLoading(false);
     }
   }, []);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- executa a consulta recebida pela navegação.
   useEffect(() => { if (params.query) void search(params.query); }, [params.query, search]);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <PageHeader title="Buscar" />
       <View style={styles.searchContainer}>
@@ -66,11 +75,13 @@ export default function SearchScreen() {
           onSubmitEditing={() => void search(query)}
           autoFocus={!params.query}
         />
-        <TouchableOpacity onPress={() => void search(query)} accessibilityLabel="Buscar">
+        <TouchableOpacity style={styles.searchButton} onPress={() => void search(query)} accessibilityLabel="Buscar">
           <Ionicons name="arrow-forward-circle" size={30} color={Colors.primary} />
         </TouchableOpacity>
       </View>
       <FlatList
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         data={results}
         keyExtractor={(item) => `${item.type}-${item.data._id}`}
         contentContainerStyle={styles.listContent}
@@ -110,13 +121,14 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   searchContainer: { flexDirection: "row", alignItems: "center", margin: 20, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.neutral, borderRadius: 15, paddingHorizontal: 15 },
-  searchInput: { flex: 1, height: 52, marginHorizontal: 10, fontSize: 16, color: Colors.text },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 52, marginHorizontal: 10, fontSize: 16, color: Colors.text },
+  searchButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   listContent: { paddingHorizontal: 20, paddingBottom: 24, flexGrow: 1 },
   resultSummary: { color: Colors.grayText, marginBottom: 12, fontWeight: "600" },
   card: { flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.neutral, borderRadius: 16, padding: 12, marginBottom: 12 },
   image: { width: 78, height: 78, borderRadius: 12, backgroundColor: Colors.neutral },
   placeholder: { alignItems: "center", justifyContent: "center" },
-  cardContent: { flex: 1, marginHorizontal: 12 },
+  cardContent: { flex: 1, minWidth: 0, marginHorizontal: 12 },
   type: { fontSize: 11, color: Colors.primary, fontWeight: "800", marginBottom: 3 },
   title: { fontSize: 16, color: Colors.text, fontWeight: "700" },
   subtitle: { marginTop: 4, fontSize: 13, color: Colors.grayText },

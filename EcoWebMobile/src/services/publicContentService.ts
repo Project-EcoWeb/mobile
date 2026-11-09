@@ -115,9 +115,9 @@ export function getPublicContentError(error: unknown, fallback: string) {
 }
 
 export function getAuthorName(project: PublicProject) {
-  return typeof project.user === "object" ? project.user.name : "Usuário da EcoWeb";
+  return project.user && typeof project.user === "object" ? project.user.name : "Usuário da EcoWeb";
 }
 
 export function getInstitution(material: PublicMaterial): PublicInstitution | null {
-  return typeof material.company === "object" ? material.company : null;
+  return material.company && typeof material.company === "object" ? material.company : null;
 }

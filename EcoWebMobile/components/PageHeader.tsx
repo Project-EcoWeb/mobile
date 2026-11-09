@@ -38,7 +38,7 @@ export function PageHeader({
         <Ionicons name="arrow-back" size={24} color={Colors.text} />
       </TouchableOpacity>
 
-      <Text numberOfLines={1} style={styles.title}>
+      <Text style={styles.title}>
         {title}
       </Text>
 
@@ -50,6 +50,7 @@ export function PageHeader({
 const styles = StyleSheet.create({
   container: {
     minHeight: 56,
+    paddingVertical: 6,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
@@ -65,6 +66,7 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
+    minWidth: 0,
     paddingHorizontal: 8,
     fontSize: 18,
     fontWeight: "bold",
@@ -72,6 +74,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   rightContainer: {
+    flexShrink: 0,
     minWidth: 44,
     minHeight: 44,
     alignItems: "flex-end",

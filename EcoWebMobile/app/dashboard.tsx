@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   SectionList,
   SectionListData,
   StyleSheet,
@@ -15,8 +14,10 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { ContentImage as Image } from '../components/ContentImage';
 import { useAuth } from '../context/AuthContext';
 import { useAuthenticationGate } from '../hooks/useAuthenticationGate';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getHomeContent,
@@ -185,16 +186,16 @@ const QuickLink = ({
   </TouchableOpacity>
 );
 
-const FeaturedCard = ({ item, router }: { item: ProjectType; router: any }) => (
+const FeaturedCard = ({ item, router, cardWidth }: { item: ProjectType; router: any; cardWidth: number }) => (
   <TouchableOpacity
-    style={styles.featuredCard}
+    style={[styles.featuredCard, { width: cardWidth }]}
     onPress={() => router.push(`/project/${item.id}`)}
     activeOpacity={0.9}
   >
     <Image source={{ uri: item.imagem }} style={styles.featuredCardImage} resizeMode="cover" />
     <View style={styles.featuredCardGradient} />
     <View style={styles.featuredCardContent}>
-      <Text style={styles.featuredCardTitle}>{item.titulo}</Text>
+      <Text style={styles.featuredCardTitle} numberOfLines={3}>{item.titulo}</Text>
       <View style={styles.featuredCardBadge}>
         <Ionicons name="arrow-forward" size={16} color="#fff" />
       </View>
@@ -231,6 +232,7 @@ const MaterialRow = ({ item, router }: { item: MaterialType; router: any }) => (
 export default function ExplorarScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { isCompact, featuredWidth } = useResponsiveLayout();
   const { isAuthenticated, navigateWithAuthentication } = useAuthenticationGate();
   const [projects, setProjects] = useState<ProjectType[]>([]);
   const [materials, setMaterials] = useState<MaterialType[]>([]);
@@ -318,7 +320,7 @@ export default function ExplorarScreen() {
             data={featuredWrapper.items}
             keyExtractor={(i) => i.id}
             renderItem={({ item }) => (
-              <FeaturedCard item={item} router={router} />
+              <FeaturedCard item={item} router={router} cardWidth={featuredWidth} />
             )}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.flatListContentContainer}
@@ -351,15 +353,17 @@ export default function ExplorarScreen() {
           item as HorizontalSectionWrapper<QuickLinkType>;
         return (
           <FlatList
+            key={isCompact ? "quick-links-single" : "quick-links-grid"}
             data={quickLinksWrapper.items}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={isCompact ? 1 : 2}
             scrollEnabled={false}
             renderItem={({ item: link, index }) => (
               <View
                 style={[
                   styles.quickLinkWrapperGrid,
-                  { marginRight: index % 2 === 0 ? 12 : 0 },
+                  isCompact && styles.quickLinkWrapperSingle,
+                  { marginRight: !isCompact && index % 2 === 0 ? 12 : 0 },
                 ]}
               >
               <QuickLink
@@ -369,7 +373,8 @@ export default function ExplorarScreen() {
               />
               </View>
             )}
-            columnWrapperStyle={styles.quickLinkGridRow}
+            columnWrapperStyle={isCompact ? undefined : styles.quickLinkGridRow}
+            contentContainerStyle={isCompact ? styles.quickLinkSingleList : undefined}
           />
         );
       }
@@ -412,9 +417,12 @@ export default function ExplorarScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <SectionList
+        contentContainerStyle={styles.sectionListContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         sections={
           adaptedSectionsData as readonly SectionListData<
             SectionListItemT,
@@ -430,7 +438,7 @@ export default function ExplorarScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <View style={styles.topHeaderRow}>
-              <View>
+              <View style={styles.greetingContainer}>
                 <Text style={styles.greeting}>
                   {user ? "Bem-vindo de volta," : "Bem-vindo à EcoWeb,"}
                 </Text>
@@ -440,6 +448,7 @@ export default function ExplorarScreen() {
                 style={styles.messagesButton}
                 onPress={() => navigateWithAuthentication("/profile/messages")}
                 activeOpacity={0.7}
+                accessibilityLabel="Mensagens"
               >
                 <Ionicons
                   name="chatbubble-ellipses"
@@ -464,6 +473,7 @@ export default function ExplorarScreen() {
                 onChangeText={setSearchQuery}
                 onSubmitEditing={submitSearch}
                 returnKeyType="search"
+                maxLength={100}
               />
               <TouchableOpacity style={styles.filterButton} activeOpacity={0.7} onPress={submitSearch}>
                 <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
@@ -495,6 +505,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFB",
   },
+  sectionListContent: { paddingBottom: 24 },
+  greetingContainer: { flex: 1, minWidth: 0, marginRight: 12 },
   header: {
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -549,7 +561,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 16,
     paddingHorizontal: 16,
-    height: 56,
+    minHeight: 56,
+    paddingVertical: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -561,6 +574,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     color: Colors.text,
     fontWeight: "500",
@@ -592,6 +606,8 @@ const styles = StyleSheet.create({
   },
   sectionHeaderContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     justifyContent: "space-between",
     alignItems: "center",
     marginHorizontal: 20,
@@ -599,6 +615,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
+    flexShrink: 1,
     fontSize: 24,
     fontWeight: "800",
     color: Colors.text,
@@ -698,6 +715,7 @@ const styles = StyleSheet.create({
   },
   materialRowContent: {
     flex: 1,
+    minWidth: 0,
     marginLeft: 16,
   },
   materialRowTitle: {
@@ -712,6 +730,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   materialRowSubtitle: {
+    flex: 1,
     fontSize: 14,
     color: Colors.grayText,
     marginLeft: 4,
@@ -734,7 +753,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: 120,
-    height: 120,
+    minHeight: 120,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -763,8 +782,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   quickLinkWrapperGrid: {
-    width: '48.5%',
+    flex: 1,
+    minWidth: 0,
   },
+  quickLinkWrapperSingle: { width: '100%', marginBottom: 12 },
+  quickLinkSingleList: { paddingHorizontal: 20 },
   quickLink: {
     flex: 1,
     flexDirection: "row",

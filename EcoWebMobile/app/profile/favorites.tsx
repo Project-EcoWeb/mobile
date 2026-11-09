@@ -15,6 +15,7 @@ import { Colors } from '../../constants/Colors';
 import { PageHeader } from '../../components/PageHeader';
 import { Ionicons } from '@expo/vector-icons';
 import { imagesMaterials, imagesProjects } from '../../assets/images/image.js';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 interface FavoriteItem {
   id: string;
   title: string; 
@@ -38,7 +39,7 @@ const FavoriteCard = ({ item, onRemove }: { item: FavoriteItem, onRemove: (id: s
     return (
         <TouchableOpacity style={styles.card} onPress={() => router.push(route as any)}>
             <Image source={{ uri: item.image }} style={styles.cardImage} />
-            <TouchableOpacity style={styles.removeButton} onPress={() => onRemove(item.id)}>
+            <TouchableOpacity accessibilityLabel="Remover favorito" style={styles.removeButton} onPress={(event) => { event.stopPropagation(); onRemove(item.id); }}>
                 <Ionicons name="heart" size={24} color={Colors.white} />
             </TouchableOpacity>
             <View style={styles.cardContent}>
@@ -66,6 +67,7 @@ const FavoritesTab = ({
 );
 
 export default function FavoritesScreen() {
+    const { gridColumns } = useResponsiveLayout();
     const [activeTab, setActiveTab] = useState<'projetos' | 'materiais'>('projetos');
     const [favoriteProjects, setFavoriteProjects] = useState(MOCK_FAVORITE_PROJECTS);
     const [favoriteMaterials, setFavoriteMaterials] = useState(MOCK_FAVORITE_MATERIALS);
@@ -97,7 +99,7 @@ export default function FavoritesScreen() {
         : "Nenhum material salvo nos seus favoritos.";
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container}>
             <StatusBar style="dark" />
             <PageHeader title="Meus Favoritos" />
 
@@ -110,8 +112,8 @@ export default function FavoritesScreen() {
                 data={data}
                 renderItem={({ item }) => <FavoriteCard item={item} onRemove={handleRemove} />}
                 keyExtractor={(item) => item.id}
-                numColumns={2}
-                key={activeTab} 
+                numColumns={gridColumns}
+                key={`${activeTab}-${gridColumns}`}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
@@ -132,6 +134,7 @@ const styles = StyleSheet.create({
     },
     tabsContainer: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         justifyContent: 'flex-start',
         gap: 30,
         paddingHorizontal: 20,
@@ -161,6 +164,7 @@ const styles = StyleSheet.create({
     listContainer: {
         paddingHorizontal: 10,
         paddingTop: 20,
+        paddingBottom: 24,
     },
     card: {
         flex: 1,
@@ -182,8 +186,8 @@ const styles = StyleSheet.create({
         right: 10,
         backgroundColor: 'rgba(233, 30, 99, 0.8)',
         borderRadius: 15,
-        width: 30,
-        height: 30,
+        width: 44,
+        height: 44,
         justifyContent: 'center',
         alignItems: 'center',
     },

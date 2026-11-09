@@ -2,11 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ContentImage as Image } from "../../components/ContentImage";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PageHeader } from "../../components/PageHeader";
 import { Colors } from "../../constants/Colors";
 import { useAuthenticationGate } from "../../hooks/useAuthenticationGate";
+import { useResponsiveLayout } from "../../hooks/useResponsiveLayout";
 import { getInstitution, getPublicContentError, getPublicMaterial, PublicMaterial } from "../../src/services/publicContentService";
 
 const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) => (
@@ -19,12 +21,14 @@ const InfoBlock = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 export default function MaterialDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isCompact, heroHeight } = useResponsiveLayout();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { isAuthenticated, navigateWithAuthentication, requireAuthentication } = useAuthenticationGate();
   const [material, setMaterial] = useState<PublicMaterial | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(100);
 
   const handleBack = () => router.canGoBack() ? router.back() : router.replace("/material");
 
@@ -50,7 +54,7 @@ export default function MaterialDetailScreen() {
 
   if (isLoading || error || !material) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={styles.container}>
         <StatusBar style="dark" />
         <PageHeader title="Material" />
         <View style={styles.centerContainer}>
@@ -68,13 +72,13 @@ export default function MaterialDetailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: footerHeight + 24 }]}>
         {material.image ? (
-          <Image source={{ uri: material.image }} style={styles.heroImage} />
+          <Image source={{ uri: material.image }} style={[styles.heroImage, { height: heroHeight }]} />
         ) : (
-          <View style={[styles.heroImage, styles.heroPlaceholder]}><Ionicons name="cube-outline" size={64} color={Colors.primary} /></View>
+          <View style={[styles.heroImage, styles.heroPlaceholder, { height: heroHeight }]}><Ionicons name="cube-outline" size={64} color={Colors.primary} /></View>
         )}
         <TouchableOpacity accessibilityLabel="Voltar para materiais" accessibilityRole="button" style={[styles.backButton, { top: insets.top + 12 }]} onPress={handleBack}>
           <Ionicons name="arrow-back" size={24} color={Colors.white} />
@@ -82,13 +86,13 @@ export default function MaterialDetailScreen() {
         <View style={styles.contentContainer}>
           <View style={styles.headerRow}>
             <View style={styles.categoryChip}><Text style={styles.categoryChipText}>{material.category}</Text></View>
-            <TouchableOpacity onPress={toggleFavorite} accessibilityLabel={isAuthenticated ? "Favoritar material" : "Entrar para favoritar"}>
+            <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorite} accessibilityLabel={isAuthenticated ? "Favoritar material" : "Entrar para favoritar"}>
               <Ionicons name={isFavorited ? "heart" : isAuthenticated ? "heart-outline" : "lock-closed-outline"} size={28} color={Colors.primary} />
             </TouchableOpacity>
           </View>
           <Text style={styles.title}>{material.name}</Text>
           <Text style={styles.sectionTitle}>Logística e Quantidade</Text>
-          <View style={styles.infoContainer}>
+          <View style={[styles.infoContainer, isCompact && styles.infoContainerCompact]}>
             <InfoBlock icon="location-outline" label="Local de retirada" value={material.location} />
             <InfoBlock icon="cube-outline" label="Quantidade" value={`${material.quantity} ${material.unitOfMeasure}`} />
           </View>
@@ -109,11 +113,13 @@ export default function MaterialDetailScreen() {
           )}
         </View>
       </ScrollView>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]} onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}>
       <TouchableOpacity style={styles.ctaButton} onPress={() => navigateWithAuthentication(`/chat/${material._id}`)}>
         <Ionicons name={isAuthenticated ? "chatbubble-ellipses-outline" : "lock-closed-outline"} size={22} color={Colors.white} />
         <Text style={styles.ctaButtonText}>{isAuthenticated ? "Tenho interesse" : "Entrar para demonstrar interesse"}</Text>
       </TouchableOpacity>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -129,13 +135,15 @@ const styles = StyleSheet.create({
   backButton: { position: "absolute", left: 20, backgroundColor: "rgba(0,0,0,0.5)", padding: 10, borderRadius: 22 },
   contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: Colors.background, marginTop: -20 },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  favoriteButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   categoryChip: { backgroundColor: Colors.accent, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   categoryChipText: { color: Colors.primary, fontWeight: "bold", fontSize: 13 },
   title: { fontSize: 28, fontWeight: "bold", color: Colors.text, marginTop: 12 },
   sectionTitle: { fontSize: 20, fontWeight: "700", color: Colors.text, marginTop: 22, marginBottom: 12 },
   infoContainer: { flexDirection: "row", gap: 12, marginBottom: 16 },
+  infoContainerCompact: { flexDirection: "column" },
   infoBlock: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: Colors.white, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral },
-  infoTextContainer: { marginLeft: 10, flex: 1 },
+  infoTextContainer: { marginLeft: 10, flex: 1, minWidth: 0 },
   infoLabel: { fontSize: 12, color: Colors.grayText },
   infoValue: { fontSize: 15, fontWeight: "600", color: Colors.text, marginTop: 2 },
   additionalInfoContainer: { marginBottom: 6 },
@@ -143,11 +151,12 @@ const styles = StyleSheet.create({
   companyHeader: { flexDirection: "row", alignItems: "center", gap: 15, backgroundColor: Colors.white, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral },
   companyLogo: { width: 60, height: 60, borderRadius: 12, backgroundColor: Colors.neutral },
   logoPlaceholder: { justifyContent: "center", alignItems: "center" },
-  companyText: { flex: 1 },
+  companyText: { flex: 1, minWidth: 0 },
   companyName: { fontSize: 18, fontWeight: "bold", color: Colors.text },
   companyLocation: { color: Colors.grayText, marginTop: 4, lineHeight: 19 },
   linkButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: Colors.neutral, backgroundColor: Colors.white, marginTop: 12 },
-  linkButtonText: { color: Colors.primary, fontSize: 16, fontWeight: "bold" },
-  ctaButton: { position: "absolute", bottom: 30, left: 20, right: 20, backgroundColor: Colors.primary, padding: 18, borderRadius: 18, alignItems: "center", justifyContent: "center", flexDirection: "row", elevation: 8, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 8 },
-  ctaButtonText: { color: Colors.white, fontSize: 16, fontWeight: "bold", marginLeft: 10 },
+  linkButtonText: { flexShrink: 1, textAlign: "center", color: Colors.primary, fontSize: 16, fontWeight: "bold" },
+  footer: { position: "absolute", bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.background },
+  ctaButton: { backgroundColor: Colors.primary, padding: 18, borderRadius: 18, alignItems: "center", justifyContent: "center", flexDirection: "row", elevation: 8, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 8 },
+  ctaButtonText: { flexShrink: 1, textAlign: "center", color: Colors.white, fontSize: 16, fontWeight: "bold", marginLeft: 10 },
 });

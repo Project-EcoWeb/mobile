@@ -24,3 +24,14 @@ export function isProtectedRoute(pathname: string) {
 export function isAuthenticationRoute(pathname: string) {
   return pathname === "/login" || pathname.startsWith("/auth/");
 }
+
+export function getAuthenticationDestination(redirect?: string | string[]) {
+  if (typeof redirect !== "string" || !redirect.startsWith("/") || redirect.startsWith("//")) {
+    return "/dashboard";
+  }
+  const path = redirect.split(/[?#]/)[0];
+  const validPath = protectedExactPaths.has(path) ||
+    ["/dashboard", "/search", "/project", "/material", "/profile/messages", "/profile/favorites"].includes(path) ||
+    /^\/(project|material|chat|institution)\/[a-zA-Z0-9_-]+$/.test(path);
+  return validPath ? redirect : "/dashboard";
+}
